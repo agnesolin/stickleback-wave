@@ -1,0 +1,453 @@
+---
+title: "stickleback main analysis"
+author: "Agnes Olin"
+date: "7/28/2021"
+output: html_document
+---
+
+## Load packages
+
+```{r packages, include=FALSE, message = FALSE}
+
+# packages
+library(broom.mixed) # 0.2.9.4
+library(colorspace) # 2.0-3
+library(data.table) # 1.14.2
+library(DHARMa) # 0.4.5
+library(dplyr) # 1.0.9 
+library(fasterize) # 1.0.3
+library(ggnewscale) # 0.4.7
+library(ggplot2) # 3.3.6
+library(ggpubr) # 1.1.3 
+library(glmmTMB) # 1.1.3
+library(grid) # 4.2.1
+library(gstat) # 2.0-9
+library(Hmisc) # 4.7-0 
+library(INLA) # 22.05.07  
+library(lubridate) # 1.8.0 
+library(mctest) # 1.3.1
+library(MetBrewer) # 0.2.0 
+library(MuMIn) # 1.46.0
+library(ncf) # 1.3-2
+library(nlme) # 3.1-157
+library(RANN) # 2.6.1
+library(raster) # 3.5-21
+library(RColorBrewer) # 1.1-3
+library(rgdal) # 1.5-32
+library(sdmTMB) # 0.1.0
+library(seegSDM) # 0.1-9
+library(sf) # 1.0-7
+library(sjPlot) # 2.8.10
+library(visreg) # 2.7.0
+
+
+
+theme_sets = theme(
+  text = element_text(family = "sans"),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank(),
+  strip.background = element_rect(fill = "grey90"),
+  legend.key.width = unit(1,"cm"))
+
+
+```
+
+## Load data
+
+
+```{r load data, warning = FALSE}
+
+
+## juvenile data ##
+# source("help_scripts/JuvenileDataCleanup.R") # script for initial cleanup of juvenile dataset
+df_juv = read.csv("data/yngel_final.csv") # detonation data 
+df_juv_full = read.csv("data/yngel_final_full.csv")
+df_Eklof = read.csv("data/Eklof_detonation_data.csv", sep = ";")
+
+## spatial rasters ##
+land5 = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Landmask5m.TIF") #landmask 5m res
+land25 = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Sweden_NyKustlinje_25m.TIF") # landmask 25m res
+SWM = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/swm_10m.TIF") # wave exposure
+SWM5 = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/SWM5.TIF") # wave exposure 5m
+depth = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Depth250.TIF") # depth
+distance_baseline = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/DistToOffshore_EuclDist_5m_r.TIF") # distance to baseline
+baseline = read.csv("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/baseline_points.csv", sep = ";") # baseline in point-format
+
+## BIAS data ##
+BIAS = read.csv("data/BIAS_stsp_210209.csv", sep = ";") # BIAS data
+recs = read.csv("data/rectangles.csv", sep=";") # info on ICES statistical rectangles
+
+
+## coastline ##
+coast = st_read("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Europe_coastline/Europe_coastline_poly.shp")
+geom_coast = st_geometry(coast)
+
+
+```
+
+
+## Clean up juvenile dataset and add environmental data
+
+The juvenile dataset includes 1700+ data points from detonations. Here, the data are cleaned up and some potential drivers added (wave exposure, distance to baseline, year, cormorants, seals, fishing pressure).
+
+```{r clean up data, include = FALSE, warning = FALSE}
+
+# first add local temperature measurements to the reduced dataset
+df_juv$local_SST = df_juv_full$SurfTemp
+df_juv$local_BT = df_juv_full$BottomTemp
+
+# remove Finnish data
+df_juv = df_juv[!(df_juv$longitude > 20 & df_juv$latitude < 62),]
+
+# add year variable
+df_juv$year = year(df_juv$date)
+
+# adding point_id so that points can be related across datasets
+df_juv$point_id = 1:nrow(df_juv)
+
+# remove repeated data from 2019
+df2019 = df_juv[df_juv$year == 2019, ] # subset
+df2019 = df2019[order(df2019$stickleback, decreasing = T), ]
+df2019 = df2019[!duplicated(cbind(df2019$latitude, df2019$longitude)),]
+
+df_juv = df_juv[df_juv$year != 2019,]
+df_juv = rbind(df_juv, df2019)
+
+
+# add environmental variables (or load file below)
+#df_juv$X = NULL
+#source("help_scripts/addSWMandDISTANCE.R") # add SWM and distance to baseline data
+#source("help_scripts/addPREDandFISHING.R") # add predation and fisheries data
+# write.csv(df_juv, "data/df_juv.csv", row.names = FALSE) # save data with env variables
+
+# load saved data frame with environmental variables
+df_juv = read.csv("data/df_juv.csv")
+
+# add in temperature data
+#source("help_scripts/temp_processing.R")
+#source("help_scripts/addTEMP.R") # adding degree day temperature
+
+# load saved data frame with temperature too 
+df_juv = read.csv("data/df_juv_temp.csv")
+
+# calculating mean fishing and predation pressure for comparison
+mean(df_juv$fishing)
+mean(df_juv$totalTopPred, na.rm = T)
+
+# temperature comparison
+df_juv$local_SST = as.numeric(df_juv$local_SST)
+df_juv$local_SST[df_juv$local_SST < 5 | df_juv$local_SST > 35] = NA # remove some odd values
+
+ggplot(df_juv, aes(x = local_SST, y = temp_comp)) +
+  geom_point(alpha = 0.3, size = 0.8) +
+  geom_abline(slope = 1, intercept = 0) +
+  
+  lims(x = c(7,28), y = c(7,28)) +
+  labs(x = expression('Local temperature ('*~degree*C*')'), y = expression('Modelled temperature ('*~degree*C*')')) +
+  
+  theme_bw() +
+  theme_sets
+
+ggsave("suppFigures/tempComp.png", width = 10, height = 10, units = "cm")
+
+cor.test(df_juv$temp_comp, df_juv$local_SST)
+
+
+```
+
+
+
+
+## Add BIAS data
+
+Here we add offshore data on stickleback abundances, ie the stickleback that come into the coast to spawn.
+
+```{r add BIAS data, warning = FALSE}
+
+# process data to get values in right unit and format (biomass spawners per km2) and calculate biomass nearby
+#source("help_scripts/BIASsmooth.R")
+df_juv = read.csv("data/df_BIAS.csv")
+
+
+
+
+```
+
+
+## Clean up data
+
+Here we subset to relevant time and locations, filter out some sketchy environmental data, and add some response variables
+
+```{r cleanup inputs, include = FALSE}
+
+## create a subset spatio-temporal subset ##
+df_sub = df_juv[
+  df_juv$year > 2000 & # increases began around the year 2000, better data coverage since 2001
+    df_juv$latitude <= 60.5, # above this there is a lot of freshwater recruitment, adds noise (incl more data actually increases importance of connectivity effect)
+]
+
+df_sub = df_sub[
+  df_sub$distance <= 40000, # remove as in Eklöf et al. 2020
+]
+
+## clean up explanatory variables ##
+source("help_scripts/data_filtering.R")
+
+
+# add spatial variables
+C = SpatialPoints(
+  coords = cbind(df_sub$longitude, df_sub$latitude),
+  proj4string = CRS("+proj=longlat +datum=WGS84")
+)
+C2 = spTransform(
+  C,
+  "+proj=utm +zone=33 +ellps=GRS80 +units=m +no_defs"
+)
+XY = as.data.frame(coordinates(C2)); names(XY) = c("X", "Y")
+df_sub$X = XY$X; df_sub$Y = XY$Y
+
+
+
+
+```
+
+
+
+
+
+## Create connectivity metrics
+
+Here we create connectivity metrics for predator spawning habitat connectivity.
+
+### loading habitat objects, prepping and constructing distance dependence
+
+Start by loading the data and making a plot illustrating dispersal distance weighting.
+
+```{r conn_base, warning = FALSE}
+
+
+### load and create various objects related to habitat patches ###
+
+# here, habitat maps for both limits 3.2 and 3.5 are created/loaded
+# source("help_scripts/habitatCALC.R")
+# this creates files habitat32 and habitat35 - no difference with raster files raster 32 and raster 35 below
+
+# these are polygons based on the habitat maps
+# rasters have been polygonised in QGIS
+# patches smaller than a hectare have been removed
+# patches have also been subset to match area of juvenile data
+polygons32 = st_read("data/habitat_polygons/polygons32.shp")
+polygons35 = st_read("data/habitat_polygons/polygons35.shp")
+
+
+# centroids for the polygons, also from QGIS
+centroids32 = st_read("data/habitat_centroids/centroids32.shp")
+centroids35 = st_read("data/habitat_centroids/centroids35.shp")
+
+# after subsetting polygons these have been rasterised to match extent (and also have small nodes removed)
+habitat32 = raster("data/raster32.TIF") # habitat raster with log10(SWM) limit 3.2
+habitat35 = raster("data/raster35.TIF") # habitat raster with log10(SWM) limit 3.5
+
+
+
+#### make plot of dispersal distances ####
+
+source("help_scripts/dispersal_plot.R")
+
+
+
+```
+
+
+### Focal connectivity
+
+Calculating focal connectivity takes a lot of time and is done on an external server using the script connFocal.R
+
+```{r connectivity_focal, warning = FALSE}
+
+# load calculated values
+res_32 = read.csv("data/res32_df.csv")
+res_35 = read.csv("data/res35_df.csv")
+
+# fix formats
+res_32$conn32 = as.numeric(res_32$conn32)
+res_35$conn35 = as.numeric(res_35$conn35)
+
+
+## merge into df_sub ##
+# load id column
+res_32$point_id = read.csv("data/conn_foc_id.csv")$point_id
+res_35$point_id = read.csv("data/conn_foc_id.csv")$point_id
+
+# merge
+df_sub = merge(df_sub, res_32[, c("point_id", "conn32")], by = "point_id", all.x = T)
+df_sub = merge(df_sub, res_35[, c("point_id", "conn35")], by = "point_id", all.x = T)
+
+
+# make histogram of values
+
+maxV = max(c(df_sub$conn32[!is.infinite(df_sub$conn32)], df_sub$conn35[!is.infinite(df_sub$conn35)]), na.rm = T)
+
+p1 = ggplot(data = df_sub, aes(conn35)) +
+  geom_histogram(binwidth = 1000) +
+  theme_bw() +
+  labs(x = "Habitat availability", y = "Count", title = "Limit = 3.5") +
+  lims(x = c(0, maxV), y = c(0, 510)) +
+  theme_sets 
+
+p2 = ggplot(data = df_sub, aes(conn32)) +
+  geom_histogram(binwidth = 1000) +
+  theme_bw() +
+  labs(x = "Habitat availability", y = "Count", title = "Limit = 3.2") +
+  lims(x = c(0, maxV), y = c(0, 510)) +
+  theme_sets 
+
+
+ggarrange(p1, p2,  labels = c("a.", "b."), font.label = list(size = 14, family = "sans", face = "plain"))
+ggsave("suppFigures/focalConnHist.jpg", width = 18.5, height = 9, units = "cm")
+
+
+
+
+```
+
+
+
+
+
+### Network connectivity
+
+Network links are also calculated on an external server using the script conn_network.
+
+```{r connectivity_network, warning = FALSE}
+
+
+# load calculated values
+network_32 = read.csv("data/res32_network.csv")
+network_35 = read.csv("data/res35_network.csv")
+
+# extract values for each detonation point
+source("help_scripts/extractNetworkMetrics.R")
+
+
+
+
+```
+
+
+
+## Sort out repeated samples and fix response variables
+
+
+
+```{r cleanup inputs 2, include = FALSE}
+
+
+## make averages in cases of samples taken at exact same location in exact same year ##
+
+bays = aggregate(bay ~ year + X + Y, data = df_sub, function(x) x[1])
+
+df_sub = df_sub[, c("year", "X", "Y", "latitude", "pike", "perch", "stickleback", "distance", "BIASmean", "SWM", "fishing", "totalTopPred", "seal", "corm2", "DD", "conn35", "conn32", "area_net_32", "connected_area_net_32", "node_id_32", "area_net_35", "connected_area_net_35", "node_id_35")]
+
+
+
+df_sub = df_sub %>%
+  group_by(year, X, Y) %>% 
+  summarise_each(funs(mean))
+
+df_sub = as.data.frame(df_sub)
+
+df_sub$bay = bays$bay
+
+
+## fix response variables ##
+df_sub$fishPred = round(df_sub$pike+df_sub$perch) # add pike and perch together and round to whole numbers for model
+df_sub$stickleback_int = round(df_sub$stickleback) # round stickleback to whole numbers for model
+df_sub$RPD = (df_sub$perch + df_sub$pike)/(df_sub$perch + df_sub$pike + df_sub$stickleback) # create dominance ratio
+
+
+## look at autocorrelation in predation pressure ##
+# source("help_scripts/TopPredFishingAutocorr.R")
+
+
+## save final data.frame ##
+write.csv(df_sub, "data/df_sub.csv", row.names = FALSE)
+
+
+
+```
+
+
+## Make maps of predictors
+
+
+
+```{r predictor maps, include = FALSE}
+
+
+#source("help_scripts/maps_predictors.R")
+
+
+```
+
+
+
+## Make background plot
+
+Background plot for 
+
+```{r model_prep, include = FALSE}
+
+#source("help_scripts/Fig1.R")
+
+
+
+
+```
+
+
+
+
+
+
+## Fit statistical models
+
+Start by making some preliminary plot exploring patterns in the data (structure of response variable, spatial autocorrelation in response and explanatory variables, collinearity).
+
+```{r model_prep, include = FALSE}
+
+#source("help_scripts/pre_model_checks.R")
+
+
+
+
+```
+
+
+
+```{r models, include = FALSE}
+
+
+source("help_scripts/models_RPD.R")
+source("help_scripts/models_pp.R")
+source("help_scripts/models_stick.R")
+source("help_scripts/final_plots.R")
+
+
+## save comparison of spatio-temporal models ##
+# spat_temp_model_comp = cbind(RPD_spat_temp_model_comp,
+#                             pp_spat_temp_model_comp,
+#                             stick_spat_temp_model_comp)
+# 
+# tab_df(spat_temp_model_comp,
+#        file="result_tables/spat_temp_model_comp.doc")
+
+
+
+
+
+```
+
+
+
+
