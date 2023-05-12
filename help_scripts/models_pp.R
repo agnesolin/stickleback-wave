@@ -97,7 +97,7 @@ base_model_pp = sdmTMB(
 
 # estimates and AIC
 tidy(base_model_pp, conf.int = T)
-AIC(base_model_pp) 
+AIC(base_model_pp) # 24315.07
 
 
 # model evaluation
@@ -123,7 +123,7 @@ m_cv = sdmTMB_cv(
 
   family = nbinom2())
 
-m_cv$elpd # -0.6668057
+m_cv$elpd # -0.6668106
 
 
 
@@ -148,7 +148,7 @@ temp_model_pp = sdmTMB(
 
 # estimates and AIC
 tidy(temp_model_pp, conf.int = T)
-AIC(temp_model_pp) 
+AIC(temp_model_pp) # 24030.44
 
 
 # model evaluation
@@ -177,7 +177,7 @@ m2_cv = sdmTMB_cv(
 
   family = nbinom2())
 
-m2_cv$elpd # -0.6547103
+m2_cv$elpd # -0.6548279
 
 
 
@@ -208,7 +208,7 @@ load("models/spat_model_pp.Rdata")
 
 # estimates and AIC
 tidy(spat_model_pp, conf.int = T) 
-AIC(spat_model_pp) 
+AIC(spat_model_pp) # 23337.76
 
 
 
@@ -237,7 +237,7 @@ m3_cv = sdmTMB_cv(
   family = nbinom2())
 
 
-m3_cv$elpd # -0.6203497
+m3_cv$elpd # -0.6202047
 
 
 
@@ -269,7 +269,7 @@ load("models/spat_temp_model_pp_1.Rdata")
 
 # estimates and AIC
 tidy(spat_temp_model_pp_1, conf.int = T)
-AIC(spat_temp_model_pp_1) 
+AIC(spat_temp_model_pp_1) # 23080.38
 
 
 # model evaluation
@@ -280,7 +280,7 @@ AIC(spat_temp_model_pp_1)
 
 # cross-validation
 
-plan(multisession, workers = 10)
+plan(multisession, workers = 5)
 
 m4_cv = sdmTMB_cv(
   fishPred ~
@@ -295,6 +295,8 @@ m4_cv = sdmTMB_cv(
 
   mesh = mesh,
   spatial = "on",
+  
+  parallel = TRUE,
 
 
   fold_ids = clust,
@@ -304,7 +306,7 @@ m4_cv = sdmTMB_cv(
 
 plan(sequential)
 
-m4_cv$elpd
+m4_cv$elpd # -0.6063078
 
 
 
@@ -350,7 +352,7 @@ AIC(spat_temp_model_pp_2) # 22792.02
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 # cross-validation
-plan(multisession, workers = 10)
+plan(multisession, workers = 5)
 
 m5_cv = sdmTMB_cv(
   fishPred ~
@@ -367,6 +369,8 @@ m5_cv = sdmTMB_cv(
 
   mesh = mesh,
   spatial = "off",
+  
+  parallel = TRUE,
 
   fold_ids = clust,
   k_folds = length(unique(clust)),

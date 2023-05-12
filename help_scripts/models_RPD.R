@@ -123,7 +123,7 @@ m_cv = sdmTMB_cv(
   
   family = binomial())
 
-m_cv$elpd # -0.6234802
+m_cv$elpd # -0.6235506
 
 
 
@@ -177,7 +177,7 @@ m2_cv = sdmTMB_cv(
   
   family = binomial())
 
-m2_cv$elpd # -0.5683107
+m2_cv$elpd # -0.5688644
 
 
 
@@ -236,7 +236,7 @@ m3_cv = sdmTMB_cv(
   family = binomial())
 
 
-m3_cv$elpd # -0.367687
+m3_cv$elpd # -0.3726271
 
 
 
@@ -281,7 +281,7 @@ AIC(spat_temp_model_1) # 2598.503
 
 
 #cross-validation
-plan(multisession, workers = 10)
+plan(multisession, workers = 5)
 
 m4_cv = sdmTMB_cv(
   RPD ~
@@ -301,11 +301,12 @@ m4_cv = sdmTMB_cv(
   fold_ids = clust,
   k_folds = length(unique(clust)),
   
+  
   family = binomial())
 
 plan(sequential)
 
-m4_cv$elpd
+m4_cv$elpd # -0.3376445
 
 
 
@@ -364,6 +365,8 @@ m5_cv = sdmTMB_cv(
   
   mesh = mesh,
   spatial = "off",
+  
+  parallel = TRUE,
   
   fold_ids = clust,
   k_folds = length(unique(clust)),

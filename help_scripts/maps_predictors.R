@@ -249,7 +249,7 @@ ggplot(data = geom_coast) + # coastline
   
   geom_point(data = df_sub[!is.na(df_sub$conn35),], aes(x = X_map, y = Y_map, colour = conn35/10000)) + 
   
-  scale_colour_gradientn(colours = cols, name = "Habitat availability 3.5 (ha)") + 
+  scale_colour_gradientn(colours = cols, name = "Connected area (ha)") + 
   
   theme_bw() +
   theme_sets +
@@ -275,7 +275,7 @@ ggplot(data = geom_coast) + # coastline
   
   geom_point(data = df_sub[!is.na(df_sub$conn32),], aes(x = X_map, y = Y_map, colour = conn32/10000)) + 
   
-  scale_colour_gradientn(colours = cols, name = "Habitat availability 3.2 (ha)") + 
+  scale_colour_gradientn(colours = cols, name = "Connected area (ha)") + 
   
   theme_bw() +
   theme_sets +
@@ -301,7 +301,7 @@ ggplot(data = geom_coast) + # coastline
   
   geom_point(data = df_sub[!is.na(df_sub$connected_area_net_35),], aes(x = X_map, y = Y_map, colour = connected_area_net_35/10000)) + 
   
-  scale_colour_gradientn(colours = cols, name = "Connected habitat 3.5 (ha)") + 
+  scale_colour_gradientn(colours = cols, name = "Connected area (ha)") + 
   
   theme_bw() +
   theme_sets +
@@ -329,7 +329,7 @@ ggplot(data = geom_coast) + # coastline
   
   geom_point(data = df_sub[!is.na(df_sub$connected_area_net_32),], aes(x = X_map, y = Y_map, colour = connected_area_net_32/10000)) + 
   
-  scale_colour_gradientn(colours = cols, name = "Connected habitat 3.2 (ha)") + 
+  scale_colour_gradientn(colours = cols, name = "Connected area (ha)") + 
   
   theme_bw() +
   theme_sets +

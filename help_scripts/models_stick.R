@@ -122,7 +122,7 @@ m_cv = sdmTMB_cv(
 
   family = nbinom2())
 
-m_cv$elpd # -0.5886998
+m_cv$elpd # -0.5884381
 
 
 
@@ -215,7 +215,7 @@ AIC(spat_model_stick) # 26809.81
 
 # cross-validation
 
-plan(multisession, workers = 10)
+plan(multisession, workers = 5)
 
 m3_cv = sdmTMB_cv(
   stickleback_int ~
@@ -226,6 +226,8 @@ m3_cv = sdmTMB_cv(
     swm_sc,
 
   data = df_mod,
+  
+  parallel = TRUE,
 
   mesh = mesh,
   spatial = "on",
@@ -265,13 +267,13 @@ spat_temp_model_stick_1 = sdmTMB(
   family = nbinom2())
 
 
-save(spat_temp_model_stick_3, file = "models/spat_temp_model_stick_3.Rdata")
-load("models/spat_temp_model_stick_3.Rdata")
+save(spat_temp_model_stick_1, file = "models/spat_temp_model_stick_3.Rdata")
+load("models/spat_temp_model_stick_1.Rdata")
 
 
 # estimates and AIC
-tidy(spat_temp_model_stick_3, conf.int = T)
-AIC(spat_temp_model_stick_3) # 26663.62
+tidy(spat_temp_model_stick_1, conf.int = T)
+AIC(spat_temp_model_stick_1) # 26663.62
 
 
 # model evaluation
@@ -282,7 +284,7 @@ AIC(spat_temp_model_stick_3) # 26663.62
 
 # cross-validation
 
-plan(multisession, workers = 10)
+plan(multisession, workers = 5)
 
 m4_cv = sdmTMB_cv(
   stickleback_int ~
@@ -294,6 +296,8 @@ m4_cv = sdmTMB_cv(
     (1 | yearF),
 
   data = df_mod,
+  
+  parallel = TRUE,
 
   mesh = mesh,
   spatial = "on",

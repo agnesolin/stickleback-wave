@@ -217,26 +217,26 @@ ggsave("suppFigures/netConnHist.jpg", width = 18.5, height = 9, units = "cm")
 p1 = ggplot(data = df_sub, aes(x = conn35/10000, y = connected_area_net_35/10000)) +
   geom_point(size = 0.5) +
   theme_bw() +
-  labs(x = "Habitat availability", y = "Connected area", title = "Limit = 3.5") +
+  labs(x = "Connected area (ha) - focal", y = "Connected area (ha) - network", title = "Limit = 3.5") +
   theme_sets 
 
 p2 = ggplot(data = df_sub, aes(x = conn32/10000, y = connected_area_net_32/10000)) +
   geom_point(size = 0.5) +
   theme_bw() +
-  labs(x = "Habitat availability", y = "Connected area", title = "Limit = 3.2") +
+  labs(x = "Connected area (ha) - focal", y = "Connected area (ha) - network", title = "Limit = 3.2") +
   theme_sets 
 
 p3 = ggplot(data = df_sub, aes(x = conn35/10000, y = conn32/10000)) +
   geom_point(size = 0.5) +
   theme_bw() +
-  labs(x = "Limit = 3.5", y = "Limit = 3.2", title = "Habitat availability") +
+  labs(x = "Limit = 3.5", y = "Limit = 3.2", title = "Connected area (ha) - focal") +
   theme_sets 
 
 
 p4 = ggplot(data = df_sub, aes(x = connected_area_net_35/10000, y = connected_area_net_32/10000)) +
   geom_point(size = 0.5) +
   theme_bw() +
-  labs(x = "Limit = 3.5", y = "Limit = 3.2", title = "Connected area") +
+  labs(x = "Limit = 3.5", y = "Limit = 3.2", title = "Connected area (ha) - network") +
   theme_sets 
 
 ggarrange(p1, p2, p3, p4, labels = c("a.", "b.", "c.", "d."), font.label = list(size = 14, family = "sans", face = "plain"))
