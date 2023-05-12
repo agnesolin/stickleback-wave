@@ -288,17 +288,17 @@ df_sub = merge(df_sub, res_35[, c("point_id", "conn35")], by = "point_id", all.x
 
 # make histogram of values
 
-maxV = max(c(df_sub$conn32[!is.infinite(df_sub$conn32)], df_sub$conn35[!is.infinite(df_sub$conn35)]), na.rm = T)
+maxV = max(c(df_sub$conn32[!is.infinite(df_sub$conn32)], df_sub$conn35[!is.infinite(df_sub$conn35)]), na.rm = T)/10000
 
-p1 = ggplot(data = df_sub, aes(conn35)) +
-  geom_histogram(binwidth = 1000) +
+p1 = ggplot(data = df_sub, aes(conn35/10000)) +
+  geom_histogram(binwidth = 0.1) +
   theme_bw() +
   labs(x = "Connected area (ha)", y = "Count", title = "Limit = 3.5") +
-  lims(x = c(0, maxV), y = c(0, 510)) +
+ lims(x = c(0, maxV), y = c(0, 510)) +
   theme_sets 
 
-p2 = ggplot(data = df_sub, aes(conn32)) +
-  geom_histogram(binwidth = 1000) +
+p2 = ggplot(data = df_sub, aes(conn32/10000)) +
+  geom_histogram(binwidth = 0.1) +
   theme_bw() +
   labs(x = "Connected area (ha)", y = "Count", title = "Limit = 3.2") +
   lims(x = c(0, maxV), y = c(0, 510)) +
