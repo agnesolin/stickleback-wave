@@ -1,7 +1,6 @@
 
 
-
-
+# function to calculate connected area
 calc_connected_area = function(nodes, centroids, links){
   
   # extracts node ids and areas
@@ -242,11 +241,6 @@ p4 = ggplot(data = df_sub, aes(x = connected_area_net_35/10000, y = connected_ar
 ggarrange(p1, p2, p3, p4, labels = c("a.", "b.", "c.", "d."), font.label = list(size = 14, family = "sans", face = "plain"))
 ggsave("suppFigures/connComparison.jpg", width = 18.5, height = 18.5, units = "cm")
 
-
-## examples ##
-
-# habitat availability = weighting (transparent) + habitat patches = example for one point + other panel with detonation points colour coded by value with habitat patches in background
-# network = simple network with links + other panel with patches colour-coded by available habitat + detonation point colour coded by patch they belong to
 
 
 

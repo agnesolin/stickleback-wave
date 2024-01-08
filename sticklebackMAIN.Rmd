@@ -1,7 +1,7 @@
 ---
 title: "stickleback main analysis"
 author: "Agnes Olin"
-date: "2023-05-10"
+date: "2024-01-04"
 output: html_document
 ---
 
@@ -11,10 +11,10 @@ output: html_document
 
 # packages (R version 4.2.1)
 library(broom.mixed) # 0.2.9.4
-library(colorspace) # 2.0-3
+library(colorspace) # 2.1-0
 library(data.table) # 1.14.8
 library(DHARMa) # 0.4.6
-library(dplyr) # 1.1.0 
+library(dplyr) # 1.1.3
 library(fasterize) # 1.0.4
 library(future) # 1.32.0
 library(future.apply) # 1.10.0
@@ -30,20 +30,21 @@ library(lubridate) # 1.9.2
 library(mctest) # 1.3.1
 library(MetBrewer) # 0.2.0 
 library(MuMIn) # 1.47.5
+library(ncdf4) # 1.21
 library(ncf) # 1.3-2
 library(nlme) # 3.1-157
 library(RANN) # 2.6.1
-library(raster) # 3.6-14
+library(raster) # 3.6-23
 library(RColorBrewer) # 1.1-3
 library(rgdal) # 1.6-4
 library(sdmTMB) # 0.3.0
 library(seegSDM) # 0.1-9
-library(sf) # 1.0-9
+library(sf) # 1.0-14
 library(sjPlot) # 2.8.13
 library(visreg) # 2.7.0
 
 
-
+# set default figure theme settings
 theme_sets = theme(
   text = element_text(family = "sans"),
   panel.grid.major = element_blank(),
@@ -54,6 +55,8 @@ theme_sets = theme(
 
 ```
 
+
+
 ## Load data
 
 
@@ -62,11 +65,11 @@ theme_sets = theme(
 
 ## juvenile data ##
 # source("help_scripts/JuvenileDataCleanup.R") # script for initial cleanup of juvenile dataset
-df_juv = read.csv("data/yngel_final.csv") # detonation data 
-df_juv_full = read.csv("data/yngel_final_full.csv")
-df_Eklof = read.csv("data/Eklof_detonation_data.csv", sep = ";")
+df_juv = read.csv("data/yngel_final.csv") # juvenile dataset (after cleanup)
+df_juv_full = read.csv("data/yngel_final_full.csv") # juvenile dataset (with some additional environmental data)
+df_Eklof = read.csv("data/Eklof_detonation_data.csv", sep = ";") # juvenile data from Eklöf et al. 2020 (for Fig 1)
 
-## spatial rasters ##
+## raster data ##
 land5 = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Landmask5m.TIF") #landmask 5m res
 land25 = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Sweden_NyKustlinje_25m.TIF") # landmask 25m res
 SWM = raster("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/swm_10m.TIF") # wave exposure
@@ -84,13 +87,12 @@ recs = read.csv("data/rectangles.csv", sep=";") # info on ICES statistical recta
 coast = st_read("//storage.slu.se/home_2$/agin0002/Documents/SLU-Agnes/general_GIS/Europe_coastline/Europe_coastline_poly.shp")
 geom_coast = st_geometry(coast)
 
-
 ```
 
 
 ## Clean up juvenile dataset and add environmental data
 
-The juvenile dataset includes 17000+ data points from detonations. Here, the data are cleaned up and some potential drivers added (wave exposure, distance to baseline, year, cormorants, seals, fishing pressure).
+The juvenile dataset includes 17000+ data points from detonations. Here, the data are cleaned up and some potential drivers added (wave exposure, distance to baseline, year, cormorants, seals, fishing pressure, temperature).
 
 ```{r clean up data, include = FALSE, warning = FALSE}
 
@@ -111,7 +113,6 @@ df_juv$point_id = 1:nrow(df_juv)
 df2019 = df_juv[df_juv$year == 2019, ] # subset
 df2019 = df2019[order(df2019$stickleback, decreasing = T), ]
 df2019 = df2019[!duplicated(cbind(df2019$latitude, df2019$longitude)),]
-
 df_juv = df_juv[df_juv$year != 2019,]
 df_juv = rbind(df_juv, df2019)
 
@@ -126,15 +127,11 @@ df_juv = rbind(df_juv, df2019)
 df_juv = read.csv("data/df_juv.csv")
 
 # add in temperature data
-#source("help_scripts/temp_processing.R")
+#source("help_scripts/temp_processing.R") # process satellite data
 #source("help_scripts/addTEMP.R") # adding degree day temperature
 
 # load saved data frame with temperature too 
 df_juv = read.csv("data/df_juv_temp.csv")
-
-# calculating mean fishing and predation pressure for comparison
-mean(df_juv$fishing)
-mean(df_juv$totalTopPred, na.rm = T)
 
 # temperature comparison
 df_juv$local_SST = as.numeric(df_juv$local_SST)
@@ -152,8 +149,9 @@ ggplot(df_juv, aes(x = local_SST, y = temp_comp)) +
 
 ggsave("suppFigures/tempComp.png", width = 10, height = 10, units = "cm")
 
+# correlation test for local vs satellite temperature
 cor.test(df_juv$temp_comp, df_juv$local_SST)
-
+sum(!is.na(df_juv$local_SST) & !is.na(df_juv$temp_comp)) # N = 10831
 
 ```
 
@@ -162,7 +160,7 @@ cor.test(df_juv$temp_comp, df_juv$local_SST)
 
 ## Add BIAS data
 
-Here we add offshore data on stickleback abundances, ie the stickleback that come into the coast to spawn.
+Here we add offshore data on stickleback abundances, ie the stickleback that come to the coast to spawn.
 
 ```{r add BIAS data, warning = FALSE}
 
@@ -178,14 +176,14 @@ df_juv = read.csv("data/df_BIAS.csv")
 
 ## Clean up data
 
-Here we subset to relevant time and locations, filter out some sketchy environmental data, and add some response variables
+Here we subset to relevant time and locations, filter out some sketchy environmental data, and format some response variables.
 
 ```{r cleanup inputs, include = FALSE}
 
 ## create a spatio-temporal subset ##
 df_sub = df_juv[
   df_juv$year > 2000 & # increases began around the year 2000, better data coverage since 2001
-    df_juv$latitude <= 60.5, # above this there is a lot of freshwater recruitment, adds noise (incl more data actually increases importance of connectivity effect)
+    df_juv$latitude <= 60.5, # limit to an area coherent in terms of ecology and management
 ]
 
 df_sub = df_sub[
@@ -230,14 +228,14 @@ Start by loading the data and making a plot illustrating dispersal distance weig
 
 ### load and create various objects related to habitat patches ###
 
-# here, habitat maps for both limits 3.2 and 3.5 are created/loaded
+# here, habitat maps for both limits 3.2 and 3.5 are created
 # source("help_scripts/habitatCALC.R")
-# this creates files habitat32 and habitat35 - no difference with raster files raster 32 and raster 35 below
+# this creates the initial rasters habitat32 and habitat35 - which are then modified in QGIS as described below, and final habitat rasters are loaded
 
 # these are polygons based on the habitat maps
 # rasters have been polygonised in QGIS
 # patches smaller than a hectare have been removed
-# patches have also been subset to match area of juvenile data
+# patches have also been subset to match area where juvenile data are available
 polygons32 = st_read("data/habitat_polygons/polygons32.shp")
 polygons35 = st_read("data/habitat_polygons/polygons35.shp")
 
@@ -263,7 +261,7 @@ source("help_scripts/dispersal_plot.R")
 
 ### Focal connectivity
 
-Calculating focal connectivity takes a lot of time and is done on an external server using the script connFocal.R
+Calculating focal connectivity takes a lot of time and is done on an external server using the script connFocal.R (in folder on_gunvor - gunvor is the name of the server).
 
 ```{r connectivity_focal, warning = FALSE}
 
@@ -274,7 +272,6 @@ res_35 = read.csv("data/res35_df.csv")
 # fix formats
 res_32$conn32 = as.numeric(res_32$conn32)
 res_35$conn35 = as.numeric(res_35$conn35)
-
 
 ## merge into df_sub ##
 # load id column
@@ -294,7 +291,7 @@ p1 = ggplot(data = df_sub, aes(conn35/10000)) +
   geom_histogram(binwidth = 0.1) +
   theme_bw() +
   labs(x = "Connected area (ha)", y = "Count", title = "Limit = 3.5") +
- lims(x = c(0, maxV), y = c(0, 510)) +
+  lims(x = c(0, maxV), y = c(0, 510)) +
   theme_sets 
 
 p2 = ggplot(data = df_sub, aes(conn32/10000)) +
@@ -307,8 +304,6 @@ p2 = ggplot(data = df_sub, aes(conn32/10000)) +
 
 ggarrange(p1, p2,  labels = c("a.", "b."), font.label = list(size = 14, family = "sans", face = "plain"))
 ggsave("suppFigures/focalConnHist.jpg", width = 18.5, height = 9, units = "cm")
-
-
 
 
 ```
@@ -341,25 +336,21 @@ source("help_scripts/extractNetworkMetrics.R")
 ## Sort out repeated samples and fix response variables
 
 
-
 ```{r cleanup inputs 2, include = FALSE}
 
 
 ## make averages in cases of samples taken at exact same location in exact same year ##
 
-bays = aggregate(bay ~ year + X + Y, data = df_sub, function(x) x[1])
+bays = aggregate(bay ~ year + X + Y, data = df_sub, function(x) x[1]) # to be able to add in bay variable later
 
-df_sub = df_sub[, c("year", "X", "Y", "latitude", "pike", "perch", "stickleback", "distance", "BIASmean", "SWM", "fishing", "totalTopPred", "seal", "corm2", "DD", "conn35", "conn32", "area_net_32", "connected_area_net_32", "node_id_32", "area_net_35", "connected_area_net_35", "node_id_35")]
-
-
+df_sub = df_sub[, c("year", "X", "Y", "latitude", "pike", "perch", "stickleback", "distance", "BIASmean", "SWM", "fishing", "totalTopPred", "seal", "corm2", "DD", "conn35", "conn32", "area_net_32", "connected_area_net_32", "node_id_32", "area_net_35", "connected_area_net_35", "node_id_35")] # susbet to relevant columns
 
 df_sub = df_sub %>%
   group_by(year, X, Y) %>% 
-  summarise_each(funs(mean))
-
+  summarise_each(funs(mean)) # averages of sample in exact same location in same year
 df_sub = as.data.frame(df_sub)
 
-df_sub$bay = bays$bay
+df_sub$bay = bays$bay # add bay variable back in
 
 
 ## fix response variables ##
@@ -368,11 +359,7 @@ df_sub$stickleback_int = round(df_sub$stickleback) # round stickleback to whole 
 df_sub$RPD = (df_sub$perch + df_sub$pike)/(df_sub$perch + df_sub$pike + df_sub$stickleback) # create dominance ratio
 
 
-## look at autocorrelation in predation pressure ##
-# source("help_scripts/TopPredFishingAutocorr.R")
-
-
-## save final data.frame ##
+## save final data frame used for analysis ##
 write.csv(df_sub, "data/df_sub.csv", row.names = FALSE)
 
 
@@ -380,14 +367,19 @@ write.csv(df_sub, "data/df_sub.csv", row.names = FALSE)
 ```
 
 
-## Make maps of predictors
+## Make maps of predictors and look at spation autocorrelation
 
 
 
 ```{r predictor maps, include = FALSE}
 
 
+## look at autocorrelation in predation pressure ##
+# source("help_scripts/TopPredFishingAutocorr.R")
+
+# make maps
 #source("help_scripts/maps_predictors.R")
+
 
 
 ```
@@ -426,14 +418,17 @@ Start by making some preliminary plot exploring patterns in the data (structure 
 ```
 
 
+Now - fit the actual models for the different response variables.
 
 ```{r models, include = FALSE}
 
 
-source("help_scripts/models_RPD.R")
-source("help_scripts/models_pp.R")
-source("help_scripts/models_stick.R")
-source("help_scripts/final_plots.R")
+source("help_scripts/models_RPD.R") # models of predator dominance
+source("help_scripts/models_pp.R") # model of predator densities
+source("help_scripts/models_stick.R") # model of stickleback densities
+
+# combining and saving plots
+source("help_scripts/final_plots.R") 
 
 
 ## save comparison of spatio-temporal models ##
@@ -451,5 +446,42 @@ source("help_scripts/final_plots.R")
 ```
 
 
+## time series
+
+
+```{r time series, include = FALSE}
+
+
+bay_patterns = 
+  df_juv %>%
+  group_by(year, bay) %>%
+  summarise(
+    RPD = sum(c(pike, perch))/sum(c(pike, perch, stickleback)),
+    N = n()
+    
+  )
+
+bay_patterns = subset(bay_patterns, !is.nan(RPD) & N >= 5)
+
+bay_sub = subset(bay_patterns, bay %in%   names(table(bay_patterns$bay))[table(bay_patterns$bay) >= 8]  )
+
+bay_sub$col_factor = "mid"
+bay_sub$col_factor[bay_sub$RPD <= 0.1] = "stickleback"
+bay_sub$col_factor[bay_sub$RPD >= 0.9] = "pred"
+
+bay_sub$year = as.integer(bay_sub$year)
+
+ggplot(bay_sub, aes(year, RPD)) +
+  geom_point(aes(colour = col_factor)) +
+  scale_colour_manual(values = c("grey", "aquamarine4", "chocolate3")) +
+  scale_x_continuous(breaks = seq(1980, 2020, 5)) +
+  facet_wrap(~bay, ncol = 5, scales = "free_x") +
+  theme_bw(base_size = 7) +
+  theme(legend.position = "none",axis.text.x = element_text(angle = -90))
+
+ggsave("suppFigures/time_trends.jpg", width = 18.5, height = 20.0, units = "cm", dpi = 300) 
+
+
+```
 
 

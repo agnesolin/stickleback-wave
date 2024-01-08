@@ -2,13 +2,12 @@
 #### model evaluation for sdmTMB models ####
 
 # generate residuals
-pred_fixed = mod$family$linkinv(predict(mod)$est_non_rf)
+if(rf) pred_fixed = mod$family$linkinv(predict(mod)$est_non_rf)
+if(rf == FALSE) pred_fixed = mod$family$linkinv(predict(mod)$est)
 dharm = simulate(mod, nsim = 500)
 dharm = DHARMa::createDHARMa(
   simulatedResponse = dharm,
-  #observedResponse = df_mod$stickleback_int,
-  #observedResponse = df_mod$RPD,
-  observedResponse = df_mod$fishPred,
+  observedResponse = observedResp,
   fittedPredictedResponse = pred_fixed
 )
 
@@ -65,20 +64,5 @@ col_mod = glmmTMB(RPD ~ # doesn't seem to work well with sdmTMB - refit
 
 mctest(col_mod)
 imcdiag(col_mod, corr = TRUE)
-
-
-
-
-#jpeg("suppFigures/qqWave.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-#jpeg("suppFigures/qqWave_stick.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-jpeg("suppFigures/qqWave_pp.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-
-plotQQunif(dharm, 
-           testUniformity = F, testOutliers = F, testDispersion = F, 
-           main = "QQ-plot base model",
-           cex.axis = 2, cex.lab = 3,  cex.main = 3, 
-           family = "sans")
-
-dev.off()
 
 

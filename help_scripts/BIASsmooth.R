@@ -2,7 +2,7 @@
 #### make a smooth of BIAS data to be compared w juvenile data ####
 # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ # 
 
-# only include BIAS
+# only include potential spawners
 BIAS = BIAS[BIAS$length >= 5.5, ]
 
 # translate length into weight

@@ -12,9 +12,13 @@ df_mod = df_sub[!is.na(df_sub$totalTopPred) & !is.na(df_sub$SWM) & !is.na(df_sub
 colSums(is.na(df_mod))
 nrow(df_mod)
 
+# save as figure source data
+write.csv(df_mod, 
+          "source-data-figures/source_raw-data-RPD_fig2-3.csv",
+          row.names = FALSE)
+
 # scale values
 source("help_scripts/scaling.R")
-
 
 #### create mesh for fitting spatial models ####
 
@@ -102,6 +106,8 @@ AIC(base_model) # 4008.1
 
 # model evaluation
 # mod = base_model
+# observedResp = df_mod$RPD
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 #cross-validation
@@ -153,6 +159,8 @@ AIC(temp_model) # 3785.353
 
 # model evaluation
 # mod = temp_model
+# observedResp = df_mod$RPD
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
@@ -213,30 +221,33 @@ AIC(spat_model) # 2812.367
 
 # model evaluation
 # mod = spat_model
+# observedResp = df_mod$RPD
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
+
 # cross-validation
-m3_cv = sdmTMB_cv(
-  RPD ~
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-  
-  data = df_mod,
-  
-  mesh = mesh,
-  spatial = "on",
-  
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-  
-  family = binomial())
-
-
-m3_cv$elpd # -0.3726271
+# m3_cv = sdmTMB_cv(
+#   RPD ~
+#     
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+#   
+#   data = df_mod,
+#   
+#   mesh = mesh,
+#   spatial = "on",
+#   
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+#   
+#   family = binomial())
+# 
+# 
+# m3_cv$elpd # -0.3726271
 
 
 
@@ -276,37 +287,39 @@ AIC(spat_temp_model_1) # 2598.503
 
 
 # model evaluation
-# mod = spat_temp_model_1 
+# mod = spat_temp_model_1
+# observedResp = df_mod$RPD
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
 #cross-validation
-plan(multisession, workers = 5)
-
-m4_cv = sdmTMB_cv(
-  RPD ~
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    (1 | yearF),
-  
-  data = df_mod,
-  
-  mesh = mesh,
-  spatial = "on",
-  
-  
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-  
-  
-  family = binomial())
-
-plan(sequential)
-
-m4_cv$elpd # -0.3376445
+# plan(multisession, workers = 5)
+# 
+# m4_cv = sdmTMB_cv(
+#   RPD ~
+#     
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc +
+#     (1 | yearF),
+#   
+#   data = df_mod,
+#   
+#   mesh = mesh,
+#   spatial = "on",
+#   
+#   
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+#   
+#   
+#   family = binomial())
+# 
+# plan(sequential)
+# 
+# m4_cv$elpd # -0.3376445
 
 
 
@@ -314,28 +327,28 @@ m4_cv$elpd # -0.3376445
 
 
 # fit (or load) model
-spat_temp_model_2 = sdmTMB(
-  RPD ~
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-  
-  data = df_mod,
-  
-  time = "year",
-  spatiotemporal = "iid",
-  
-  mesh = mesh,
-  spatial = "off",
-  
-  
-  family = binomial(),
-  weights = rep(1, nrow(df_mod)))
-
-
-save(spat_temp_model_2 , file = "models/spat_temp_model_2.Rdata")
+# spat_temp_model_2 = sdmTMB(
+#   RPD ~
+#     
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+#   
+#   data = df_mod,
+#   
+#   time = "year",
+#   spatiotemporal = "iid",
+#   
+#   mesh = mesh,
+#   spatial = "off",
+#   
+#   
+#   family = binomial(),
+#   weights = rep(1, nrow(df_mod)))
+# 
+# 
+# save(spat_temp_model_2 , file = "models/spat_temp_model_2.Rdata")
 
 load("models/spat_temp_model_2.Rdata")
 
@@ -344,49 +357,51 @@ tidy(spat_temp_model_2, conf.int = T)
 AIC(spat_temp_model_2) # 2581.013
 
 # model evaluation
-# mod = spat_temp_model_2 
+# mod = spat_temp_model_2
+# observedResp = df_mod$RPD
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 # cross-validation
-plan(multisession, workers = 5)
-
-m5_cv = sdmTMB_cv(
-  RPD ~
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-  
-  data = df_mod,
-  
-  time = "year",
-  spatiotemporal = "iid",
-  
-  mesh = mesh,
-  spatial = "off",
-  
-  parallel = TRUE,
-  
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-  
-  family = binomial())
-
-plan(sequential)
-
-m5_cv$elpd
+# plan(multisession, workers = 5)
+# 
+# m5_cv = sdmTMB_cv(
+#   RPD ~
+#     
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+#   
+#   data = df_mod,
+#   
+#   time = "year",
+#   spatiotemporal = "iid",
+#   
+#   mesh = mesh,
+#   spatial = "off",
+#   
+#   parallel = TRUE,
+#   
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+#   
+#   family = binomial())
+# 
+# plan(sequential)
+# 
+# m5_cv$elpd
 
 
 
 
 #### saving AICs and elpds ####
 
-RPD_spat_temp_model_comp = data.frame(
-  RPD_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
-  RPD_elpds = c(m_cv$elpd, m2_cv$elpd, m3_cv$elpd, m4_cv$elpd,NA) # m5_cv$elpd)
-  
-)
+# RPD_spat_temp_model_comp = data.frame(
+#   RPD_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
+#   RPD_elpds = c(m_cv$elpd, m2_cv$elpd, m3_cv$elpd, m4_cv$elpd, NA) 
+#   
+# )
 
 
 
@@ -440,148 +455,12 @@ visreg(spat_temp_model_2,
   theme_sets +
   theme(
     legend.position = "bottom",
-    #plot.margin = margin(0.5,0.3,0.3,0.5, "cm"),
     legend.key.width = unit(0.7, 'cm') 
   ) 
 
-# annotation_raster(imgS, ymin = -0.12, ymax = -0.02, xmin = -2.15, xmax = -1.55) +
-# annotation_raster(imgP, ymin = 1.02, ymax = 1.12, xmin = -2.25, xmax = -1.5)
 
 
-
-ggsave("suppFigures/stickleback_wave.png", width = 180, height = 9, units = "cm")
-
-# 
-# #### random effects ####
-# 
-# # make a grid based on where data are collected and predict based on this
-# 
-# 
-# # coastline
-# coast = st_read("data/Europe_coastline_poly.shp")
-# geom_coast = st_geometry(coast)
-# 
-# # create a grid for prediction 
-# r = raster(xmn = min(df_mod$X_new),
-#            xmx = max(df_mod$X_new), 
-#            ymn = min(df_mod$Y_new), 
-#            ymx = max(df_mod$Y_new), 
-#            res = 5000)
-# 
-# 
-# crs(r) = crs(land5)
-# 
-# pts = SpatialPointsDataFrame(coords = cbind(df_mod$X_new, df_mod$Y_new), data = data.frame(year = df_mod$year), proj4string = crs(geom_coast))
-# 
-# 
-# countr = rasterize(pts, r, "year", fun=function(x,...){length(unique(x))})
-# countr =  as.data.frame(rasterToPoints(countr))
-# 
-# countr = countr[countr$layer > 1 ,] # only include cells with data from at least 2 years
-# 
-# # predict
-# nd = data.frame(X_new = countr$x, Y_new = countr$y, 
-#                 BIAS_sc = mean(df_mod$BIAS_sc), distance_sc = mean(df_mod$distance_sc), swm_sc = mean(df_mod$swm_sc))
-# 
-# p = predict(spat_model, newdata = nd)
-# 
-# # sort out projection
-# C = SpatialPoints(
-#   coords = cbind(p$X_new, p$Y_new),
-#   proj4string = crs(land25)
-# )
-# C2 = spTransform(
-#   C,
-#   
-#   CRSobj =  crs(geom_coast)
-# )
-# p$X_map = coordinates(C2)[, 1]
-# p$Y_map = coordinates(C2)[, 2]
-# 
-# xlims = range(coordinates(C2)[, 1])
-# ylims = range(coordinates(C2)[, 2])
-# 
-# 
-# 
-# 
-# ggplot(data = geom_coast) + # coastline
-#   geom_sf(fill = "lightgrey" , colour = "lightgrey" , size = 0.2) +
-#   coord_sf(xlim = xlims, ylim = ylims) +
-#   
-#   geom_tile(data = p, 
-#             aes(x = X_map, y = Y_map, fill = omega_s), width = 5000, height = 5000) +
-#   scale_fill_continuous_divergingx(palette = "Fall", mid = 0, rev = TRUE, name = "Residual variation") + 
-#   #  annotate("text", xlims[1] + 0.2*(xlims[2]-xlims[1]), ylims[1] + 0.08*(ylims[2]-ylims[1]), label = "Blekinge", family = "sans", size = 13) +
-#   
-#   #  annotate("text", xlims[1] + 0.3*(xlims[2]-xlims[1]), ylims[1] + 0.2*(ylims[2]-ylims[1]), label = "Kalmarsund", family = "sans", size = 13) +
-#   
-#   #  annotate("text", xlims[1] + 0.38*(xlims[2]-xlims[1]), ylims[1] + 0.57*(ylims[2]-ylims[1]), label = "St Anna", family = "sans", size = 13) +
-#   
-#   #  annotate("text", xlims[1] + 0.55*(xlims[2]-xlims[1]), ylims[1] + 0.97*(ylims[2]-ylims[1]), label = "Forsmark", family = "sans", size = 13) +
-#   
-#   theme_bw() +
-#   theme_sets +
-#   theme(
-#     legend.position = "bottom",
-#     axis.title.x = element_blank(),
-#     axis.title.y = element_blank(),
-#     panel.grid.major = element_line(),
-#     panel.grid.minor = element_line(),
-#   )
-# 
-# 
-# ggsave("figures/resid_spat_Johan.jpg", width = 18.5, height = 22, units = "cm")
-# 
-# 
-# 
-# #### yearly maps ####
-# 
-# # predict on a yearly basis
-# p = predict(spat_temp_model_2)
-# 
-# # sort out projection
-# C = SpatialPoints(
-#   coords = cbind(p$X_new, p$Y_new),
-#   proj4string = crs(land25)
-# )
-# C2 = spTransform(
-#   C,
-#   
-#   CRSobj =  crs(geom_coast)
-# )
-# 
-# p$X_map = coordinates(C2)[, 1]
-# p$Y_map = coordinates(C2)[, 2]
-# 
-# xlims = range(coordinates(C2)[, 1])
-# ylims = range(coordinates(C2)[, 2])
-# 
-# 
-# library(colorspace)
-# 
-# ggplot(data = geom_coast) + # coastline
-#   geom_sf(fill = "lightgrey" , colour = "lightgrey" , size = 0.2) +
-#   coord_sf(xlim = xlims, ylim = ylims) +
-#   
-#   geom_point(data = p, 
-#              aes(x = X_map, y = Y_map, colour = epsilon_st)) +
-#   scale_colour_continuous_divergingx(palette = "Fall", mid = 0, rev = TRUE, name = "Residual variation") + 
-#   
-#   facet_wrap(~year) +
-#   
-#   theme_bw() +
-#   theme_sets +
-#   theme(
-#     legend.position = "bottom",
-#     axis.title.x = element_blank(),
-#     axis.title.y = element_blank(),
-#     panel.grid.major = element_line(),
-#     panel.grid.minor = element_line(),
-#   )
-# 
-# 
-# ggsave("suppFigures/resid_spat_year.jpg", width = 18.5, height = 22, units = "cm")
-# 
+ggsave("suppFigures/stickleback_wave.png", width = 9, height = 10, units = "cm")
 
 
 
@@ -589,7 +468,7 @@ ggsave("suppFigures/stickleback_wave.png", width = 180, height = 9, units = "cm"
 
 
 
-mod_ref = glmmTMB(
+mod_ref = glmmTMB( # ref model with only stickleback wave-variables
   RPD ~ 
     
     BIAS_sc +
@@ -603,11 +482,13 @@ mod_ref = glmmTMB(
   
   family = binomial)
 
-mod = mod_ref
-#source("help_scripts/model_evaluation.R")
+
+# mod = mod_ref
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 
-mod_ref2 = glmmTMB(
+mod_ref2 = glmmTMB( # second reference model with bo stickleback wave-drivers
   RPD ~ 
     
     
@@ -625,8 +506,11 @@ mod_ref2 = glmmTMB(
   
   family = binomial)
 
-mod = mod_ref2
-#source("help_scripts/model_evaluation.R")
+
+# mod = mod_ref2
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
+
 
 #### conn 35  ####
 
@@ -656,15 +540,18 @@ mod_RPD_conn35_full = glmmTMB(
   
   family = binomial)
 
+
 mod = mod_RPD_conn35_full
-#source("help_scripts/model_evaluation.R")
+qqmod = TRUE
+resp = "RPD"
+source("help_scripts/model_evaluation.R")
 
 # dredge_RPD_conn35_full = dredge(mod_RPD_conn35_full, trace = 2)
 # tab_df(dredge_RPD_conn35_full,
-#        file="result_tables/dredge_conn35_full.doc")
+#        file="suppTables/dredge_conn35_full.doc")
 
 
-mod_RPD_conn35_full_noFish = glmmTMB(
+mod_RPD_conn35_noFish = glmmTMB(
   RPD ~ 
     
     BIAS_sc +
@@ -685,12 +572,13 @@ mod_RPD_conn35_full_noFish = glmmTMB(
   
   family = binomial)
 
-tidy(mod_RPD_conn35_full_noFish, conf.int = T)
+tidy(mod_RPD_conn35_noFish, conf.int = T)
 tidy(mod_RPD_conn35_full, conf.int = T)[c(1:6,8:10,12:13),]
 
 
 
-mod_RPD_conn35_PRED = glmmTMB(
+
+mod_RPD_conn35_noConn = glmmTMB(
   RPD ~ 
     
     BIAS_sc +
@@ -698,13 +586,8 @@ mod_RPD_conn35_PRED = glmmTMB(
     BIAS_sc*distance_sc  +
     swm_sc +
     
-    conn35_sc +
-    seal_sc +
-    corm_sc +
+    pred_sc +
     fishing_sc +
-    conn35_sc*corm_sc +
-    conn35_sc*seal_sc +
-    conn35_sc*fishing_sc +
     
     temp_sc +
     temp_sc*distance_sc +
@@ -716,14 +599,6 @@ mod_RPD_conn35_PRED = glmmTMB(
   data = df_mod,
   
   family = binomial)
-
-tidy(mod_RPD_conn35_PRED, conf.int = T)
-
-
-# dredge_RPD_conn35_PRED = dredge(mod_RPD_conn35_PRED, trace = 2)
-# tab_df(dredge_RPD_conn35_PRED,
-#        file="result_tables/dredge_conn35_PRED.doc")
-
 
 
 #### conn 32  ####
@@ -755,15 +630,16 @@ mod_RPD_conn32_full = glmmTMB(
   
   family = binomial)
 
-mod = mod_RPD_conn32_full
-#source("help_scripts/model_evaluation.R")
+# mod = mod_RPD_conn32_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_RPD_conn32_full = dredge(mod_RPD_conn32_full, trace = 2)
 # tab_df(dredge_RPD_conn32_full,
-#        file="result_tables/dredge_conn32_full.doc")
+#        file="suppTables/dredge_conn32_full.doc")
 
 
-mod_RPD_conn32_full_noFish = glmmTMB(
+mod_RPD_conn32_noFish = glmmTMB(
   RPD ~ 
     
     BIAS_sc +
@@ -785,7 +661,7 @@ mod_RPD_conn32_full_noFish = glmmTMB(
   
   family = binomial)
 
-tidy(mod_RPD_conn32_full_noFish, conf.int = T)
+tidy(mod_RPD_conn32_noFish, conf.int = T)
 tidy(mod_RPD_conn32_full, conf.int = T)[c(1:6,8:10,12:13),]
 
 
@@ -819,15 +695,16 @@ mod_RPD_net35_full = glmmTMB(
   
   family = binomial)
 
-mod = mod_RPD_net35_full
-#source("help_scripts/model_evaluation.R")
+# mod = mod_RPD_net35_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_RPD_net35_full = dredge(mod_RPD_net35_full, trace = 2)
 # tab_df(dredge_RPD_net35_full,
-#        file="result_tables/dredge_net35_full.doc")
+#        file="suppTables/dredge_net35_full.doc")
 
 
-mod_RPD_net35_full_noFish = glmmTMB(
+mod_RPD_net35_noFish = glmmTMB(
   RPD ~ 
     
     BIAS_sc +
@@ -849,7 +726,7 @@ mod_RPD_net35_full_noFish = glmmTMB(
   
   family = binomial)
 
-tidy(mod_RPD_net35_full_noFish, conf.int = T)
+tidy(mod_RPD_net35_noFish, conf.int = T)
 tidy(mod_RPD_net35_full, conf.int = T)[c(1:6,8:10,12:13),]
 
 
@@ -884,16 +761,17 @@ mod_RPD_net32_full = glmmTMB(
   
   family = binomial)
 
-mod = mod_RPD_net32_full
+# mod = mod_RPD_net32_full
+# qqmod = FALSE
 #source("help_scripts/model_evaluation.R")
 
 
 # dredge_RPD_net32_full = dredge(mod_RPD_net32_full, trace = 2)
 # tab_df(dredge_RPD_net32_full,
-#        file="result_tables/dredge_net32_full.doc")
+#        file="suppTables/dredge_net32_full.doc")
 
 
-mod_RPD_net32_full_noFish = glmmTMB(
+mod_RPD_net32_noFish = glmmTMB(
   RPD ~ 
     
     BIAS_sc +
@@ -915,7 +793,7 @@ mod_RPD_net32_full_noFish = glmmTMB(
   
   family = binomial)
 
-tidy(mod_RPD_net32_full_noFish, conf.int = T)
+tidy(mod_RPD_net32_noFish, conf.int = T)
 tidy(mod_RPD_net32_full, conf.int = T)[c(1:6,8:10,12:13),]
 
 
@@ -938,9 +816,9 @@ mod_sel_tab$dAIC = mod_sel_tab$AIC-mod_sel_tab$AIC[1]
 mod_sel_tab = mod_sel_tab[, c(3:4)]
 
 tab_df(mod_sel_tab,
-       file="result_tables/mod_sel_RPD_local_drivers.doc")
+       file="suppTables/mod_sel_RPD_local_drivers.doc")
 
-
+r.squaredGLMM(mod_RPD_conn35_noConn)[2,1]
 
 # sort out table with all coefficients #
 row_order = c(3,2, 9, 4, 5, 6, 7, 10, 11, 8, 12)
@@ -960,7 +838,7 @@ vals = round(tidy(mod_RPD_net32_full, conf.int = T)[row_order, c(5, 9, 10)], dig
 coefs_tab$net32 =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
 
 tab_df(coefs_tab,
-       file="result_tables/coefs_RPD_local_drivers")
+       file="suppTables/coefs_RPD_local_drivers")
 
 
 
@@ -995,12 +873,20 @@ pred_conn_1 = visreg(mod_RPD_conn35_full, xvar = "conn35_sc", by= "pred_sc",
   
   scale_x_continuous(breaks = conn_breaks_scaled, labels = conn_breaks) +
   
-  theme_bw(base_size = 9)+
+  theme_bw(base_size = 7)+
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.20, 0.20, "cm"))
 
 
+# save as figure source data
+plot_data = pred_conn_1$data
+plot_data$connectivity = plot_data$x*attributes(df_mod$conn35_sc)$`scaled:scale` + attributes(df_mod$conn35_sc)$`scaled:center` # back to original scale
+plot_data$predation_pressure = as.numeric(plot_data$pred_sc)*attributes(df_mod$pred_sc)$`scaled:scale` + attributes(df_mod$pred_sc)$`scaled:center` # back to original scale
+
+write.csv(plot_data, 
+          "source-data-figures/source_predictions-RPD_fig2.csv",
+          row.names = FALSE)
 
 
 ## temp vs dist ##
@@ -1032,16 +918,23 @@ temp_dist_1 = visreg(mod_RPD_conn35_full, xvar = "temp_sc", by = "distance_sc",
   labs(x = "Temperature (degree days)", y = "Probability of predator dominance") +
   scale_x_continuous(breaks = temp_breaks_scaled, labels = temp_breaks) +
   
-  theme_bw(base_size = 9) +
+  theme_bw(base_size = 7) +
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.35, 0.20, "cm"))
 
+# save as figure source data
+plot_data = temp_dist_1$data
+plot_data$DD = plot_data$x*attributes(df_mod$temp_sc)$`scaled:scale` + attributes(df_mod$temp_sc)$`scaled:center` # back to original scale
+plot_data$distance = as.numeric(plot_data$distance_sc)*attributes(df_mod$distance_sc)$`scaled:scale` + attributes(df_mod$distance_sc)$`scaled:center` # back to original scale
 
+write.csv(plot_data, 
+          "source-data-figures/source_predictions-RPD_fig3.csv",
+          row.names = FALSE)
 
 ## fish vs conn ##
 
-fish_conn_1 = visreg(mod_RPD_conn35_full, xvar = "conn35_sc", by= "fishing_sc",
+fish_conn_1 = visreg(mod_RPD_conn35_full, xvar = "conn35_sc", by = "fishing_sc",
                      scale = "response", overlay = T, 
                      gg = T, nn = 1000, line.par = list(size = 1, lty = rep(c(1,2,6), each = 1000)), partial = F, rug = 2) +
   
@@ -1059,153 +952,5 @@ fish_conn_1 = visreg(mod_RPD_conn35_full, xvar = "conn35_sc", by= "fishing_sc",
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.20, 0.20, "cm"))
-
-
-
-
-
-
-
-
-
-#### residual map ####
-
-df_mod$resids = residuals(mod_RPD_conn35_full, type = "response")
-
-C = SpatialPoints(
-  coords = cbind(df_mod$X, df_mod$Y),
-  proj4string = crs(land25)
-)
-C2 = spTransform(
-  C,
-  
-  CRSobj =  crs(geom_coast)
-)
-df_mod$X_map = coordinates(C2)[, 1]
-df_mod$Y_map = coordinates(C2)[, 2]
-
-xlims = range(df_mod$X_map)
-ylims = range(df_mod$Y_map)
-
-
-ggplot(data = geom_coast) + # coastline
-  geom_sf(fill = "lightgrey" , colour = "lightgrey" , size = 0.2) +
-  coord_sf(xlim = xlims, ylim = ylims) +
-  
-  geom_point(data = df_mod, aes(x = X_map, y = Y_map, colour = resids)) + 
-  
-  scale_colour_continuous_divergingx(palette = "Fall", mid = 0, rev = TRUE, name = "Residuals") +
-  
-  theme_bw() +
-  theme_sets +
-  theme(
-    legend.position = "bottom",
-    axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    panel.grid.major = element_line(),
-    panel.grid.minor = element_line(),
-  )
-
-ggsave("suppFigures/map_resid_RPD.jpg", width = 18.5, height = 24, units = "cm")
-
-
-
-#### seals vs cormorants ####
-
-mod_RPD_conn35_corm = glmmTMB(
-  RPD ~ 
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    
-    conn35_sc +
-    corm_sc +
-    fishing_sc +
-    conn35_sc*corm_sc +
-    conn35_sc*fishing_sc +
-    
-    temp_sc +
-    temp_sc*distance_sc +
-    
-    
-    (1 | year),
-  
-  
-  na.action = "na.fail",
-  
-  data = df_mod,
-  
-  family = binomial)
-
-summary(mod_RPD_conn35_corm)
-summary(mod_RPD_conn35_full)
-AIC(mod_RPD_conn35_corm)
-AIC(mod_RPD_conn35_full)
-r.squaredGLMM(mod_RPD_conn35_corm)
-r.squaredGLMM(mod_RPD_conn35_full)
-
-
-mod_RPD_conn35_seal = glmmTMB(
-  RPD ~ 
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    
-    conn35_sc +
-    seal_sc +
-    fishing_sc +
-    conn35_sc*seal_sc +
-    conn35_sc*fishing_sc +
-    
-    temp_sc +
-    temp_sc*distance_sc +
-    
-    
-    (1 | year),
-  
-  
-  na.action = "na.fail",
-  
-  data = df_mod,
-  
-  family = binomial)
-
-summary(mod_RPD_conn35_seal)
-summary(mod_RPD_conn35_full)
-AIC(mod_RPD_conn35_seal)
-AIC(mod_RPD_conn35_full)
-r.squaredGLMM(mod_RPD_conn35_seal)
-r.squaredGLMM(mod_RPD_conn35_full)
-
-
-row_order = c(3,2, 9, 4, 5, 6, 7, 10, 11, 8, 12)
-coefs_tab = data.frame(varab = tidy(mod_RPD_conn35_full, conf.int = T)[row_order, 4])
-vals = round(tidy(mod_RPD_conn35_full, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$both =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-vals = round(tidy(mod_RPD_conn35_corm, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$corm =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-vals = round(tidy(mod_RPD_conn35_seal, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$seal =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-
-coefs_tab = rbind(coefs_tab, c("AIC", 
-                               round(AIC(mod_RPD_conn35_full)),
-                               round(AIC(mod_RPD_conn35_corm)),
-                               round(AIC(mod_RPD_conn35_seal))
-))
-
-coefs_tab = rbind(coefs_tab, c("R2", 
-                               round(r.squaredGLMM(mod_RPD_conn35_full)[2,1], digits = 2),
-                               round(r.squaredGLMM(mod_RPD_conn35_corm)[2,1], digits = 2),
-                               round(r.squaredGLMM(mod_RPD_conn35_seal)[2,1], digits = 2)
-))
-
-
-
-tab_df(coefs_tab,
-       file="result_tables/sealsVScorms.doc")
 
 

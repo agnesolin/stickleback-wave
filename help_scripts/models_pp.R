@@ -12,9 +12,14 @@ df_mod = df_sub[!is.na(df_sub$totalTopPred) & !is.na(df_sub$SWM) & !is.na(df_sub
 colSums(is.na(df_mod))
 nrow(df_mod)
 
+# save as figure source data
+write.csv(df_mod, 
+          "source-data-figures/source_raw-data-PredFish_fig2-3.csv",
+          row.names = FALSE)
+
+
 # scale values
 source("help_scripts/scaling.R")
-
 
 #### create mesh for fitting spatial models ####
 
@@ -102,7 +107,10 @@ AIC(base_model_pp) # 24315.07
 
 # model evaluation
 # mod = base_model_pp
+# observedResp = df_mod$fishPred
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
+
 
 # cross-validation
 m_cv = sdmTMB_cv(
@@ -153,7 +161,10 @@ AIC(temp_model_pp) # 24030.44
 
 # model evaluation
 # mod = temp_model_pp
+# observedResp = df_mod$fishPred
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
+
 
 
 # cross-validation
@@ -186,22 +197,22 @@ m2_cv$elpd # -0.6548279
 
 
 # fit (or load) model
-spat_model_pp = sdmTMB(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-
-  family = nbinom2())
-
-save(spat_model_pp , file = "models/spat_model_pp.Rdata")
+# spat_model_pp = sdmTMB(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+#   family = nbinom2())
+# 
+# save(spat_model_pp , file = "models/spat_model_pp.Rdata")
 
 load("models/spat_model_pp.Rdata")
 
@@ -214,30 +225,33 @@ AIC(spat_model_pp) # 23337.76
 
 # model evaluation
 # mod = spat_model_pp
+# observedResp = df_mod$fishPred
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
+
 # cross-validation
-m3_cv = sdmTMB_cv(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-
-m3_cv$elpd # -0.6202047
+# m3_cv = sdmTMB_cv(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# 
+# m3_cv$elpd # -0.6202047
 
 
 
@@ -245,25 +259,25 @@ m3_cv$elpd # -0.6202047
 
 
 # fit (or load) model
-spat_temp_model_pp_1 = sdmTMB(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    (1 | yearF),
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-
-
-  family = nbinom2())
-
-
-save(spat_temp_model_pp_1, file = "models/spat_temp_model_pp_1.Rdata")
+# spat_temp_model_pp_1 = sdmTMB(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc +
+#     (1 | yearF),
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+# 
+#   family = nbinom2())
+# 
+# 
+# save(spat_temp_model_pp_1, file = "models/spat_temp_model_pp_1.Rdata")
 load("models/spat_temp_model_pp_1.Rdata")
 
 
@@ -272,41 +286,44 @@ tidy(spat_temp_model_pp_1, conf.int = T)
 AIC(spat_temp_model_pp_1) # 23080.38
 
 
+
 # model evaluation
 # mod = spat_temp_model_pp_1 
+# observedResp = df_mod$fishPred
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
 
 # cross-validation
 
-plan(multisession, workers = 5)
-
-m4_cv = sdmTMB_cv(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    (1 | yearF),
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-  
-  parallel = TRUE,
-
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-plan(sequential)
-
-m4_cv$elpd # -0.6063078
+# plan(multisession, workers = 5)
+# 
+# m4_cv = sdmTMB_cv(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc +
+#     (1 | yearF),
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+#   
+#   parallel = TRUE,
+# 
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# plan(sequential)
+# 
+# m4_cv$elpd # -0.6063078
 
 
 
@@ -316,27 +333,27 @@ m4_cv$elpd # -0.6063078
 
 
 # fit (or load) model
-spat_temp_model_pp_2 = sdmTMB(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  time = "year",
-  spatiotemporal = "iid",
-
-  mesh = mesh,
-  spatial = "off",
-
-
-  family = nbinom2())
-
-
-save(spat_temp_model_pp_2 , file = "models/spat_temp_model_pp_2.Rdata")
+# spat_temp_model_pp_2 = sdmTMB(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   time = "year",
+#   spatiotemporal = "iid",
+# 
+#   mesh = mesh,
+#   spatial = "off",
+# 
+# 
+#   family = nbinom2())
+# 
+# 
+# save(spat_temp_model_pp_2 , file = "models/spat_temp_model_pp_2.Rdata")
 
 load("models/spat_temp_model_pp_2.Rdata")
 
@@ -345,53 +362,51 @@ tidy(spat_temp_model_pp_2, conf.int = T)
 AIC(spat_temp_model_pp_2) # 22792.02
 
 
-
-
 # model evaluation
-# mod = spat_temp_model_pp_2 
+# mod = spat_temp_model_pp_2
+# observedResp = df_mod$fishPred
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
+
 # cross-validation
-plan(multisession, workers = 5)
-
-m5_cv = sdmTMB_cv(
-  fishPred ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  time = "year",
-  spatiotemporal = "iid",
-
-  mesh = mesh,
-  spatial = "off",
-  
-  parallel = TRUE,
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-plan(sequential)
-
-m5_cv$elpd
-
-
+# plan(multisession, workers = 5)
+# 
+# m5_cv = sdmTMB_cv(
+#   fishPred ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   time = "year",
+#   spatiotemporal = "iid",
+# 
+#   mesh = mesh,
+#   spatial = "off",
+#   
+#   parallel = TRUE,
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# plan(sequential)
+# 
+# m5_cv$elpd
 
 
 
 #### saving AICs and elpds ####
 
-pp_spat_temp_model_comp = data.frame(
-  pp_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
-  pp_elpds = c(m_cv$elpd, m2_cv$elpd, m43_cv$elpd, m4_cv$elpd, m5_cv$elpd)
-
-)
+# pp_spat_temp_model_comp = data.frame(
+#   pp_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
+#   pp_elpds = c(m_cv$elpd, m2_cv$elpd, m43_cv$elpd, m4_cv$elpd, m5_cv$elpd)
+# )
 
 
 
@@ -413,8 +428,9 @@ mod_ref = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_ref
-#source("help_scripts/model_evaluation.R")
+# mod = mod_ref
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 
 mod_ref2 = glmmTMB(
@@ -435,8 +451,10 @@ mod_ref2 = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_ref2
-#source("help_scripts/model_evaluation.R")
+# mod = mod_ref2
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
+
 
 
 
@@ -471,13 +489,16 @@ mod_fishPred_conn35_full = glmmTMB(
   family = nbinom2)
 
 mod = mod_fishPred_conn35_full
-#source("help_scripts/model_evaluation.R")
+qqmod = TRUE
+resp = "pp"
+source("help_scripts/model_evaluation.R")
+
 
 # dredge_fishPred_conn35_full = dredge(mod_fishPred_conn35_full, trace = 2)
 # tab_df(dredge_fishPred_conn35_full,
-#        file="result_tables/dredge_fishPred_conn35_full.doc")
+#        file="suppTables/dredge_fishPred_conn35_full.doc")
 
-mod_fishPred_conn35_full_noFish = glmmTMB(
+mod_fishPred_conn35_noFish = glmmTMB(
   fishPred ~ 
     
     BIAS_sc +
@@ -499,8 +520,80 @@ mod_fishPred_conn35_full_noFish = glmmTMB(
   
   family = nbinom2)
 
-tidy(mod_fishPred_conn35_full_noFish, conf.int = T)
+tidy(mod_fishPred_conn35_noFish, conf.int = T)
 tidy(mod_fishPred_conn35_full, conf.int = T)[c(1:6,8:10,12:13),]
+
+
+
+
+mod_fishPred_conn35_noConn = glmmTMB(
+  fishPred ~ 
+    
+    BIAS_sc +
+    distance_sc +
+    BIAS_sc*distance_sc  +
+    swm_sc +
+    
+    pred_sc +
+    fishing_sc +
+    
+    temp_sc +
+    temp_sc*distance_sc +
+    
+    (1 | year),
+  
+  na.action = "na.fail",
+  
+  data = df_mod,
+  
+  family = nbinom2)
+
+mod_fishPred_conn35_noPred = glmmTMB(
+  fishPred ~ 
+    
+    BIAS_sc +
+    distance_sc +
+    BIAS_sc*distance_sc  +
+    swm_sc +
+    
+    conn35_sc +
+    fishing_sc +
+    conn35_sc*fishing_sc +
+    
+    temp_sc +
+    temp_sc*distance_sc +
+    
+    (1 | year),
+  
+  na.action = "na.fail",
+  
+  data = df_mod,
+  
+  family = nbinom2)
+
+
+mod_fishPred_conn35_noTemp = glmmTMB(
+  fishPred ~ 
+    
+    BIAS_sc +
+    distance_sc +
+    BIAS_sc*distance_sc  +
+    swm_sc +
+    
+    conn35_sc +
+    pred_sc +
+    fishing_sc +
+    conn35_sc*pred_sc +
+    conn35_sc*fishing_sc +
+    
+    
+    (1 | year),
+  
+  na.action = "na.fail",
+  
+  data = df_mod,
+  
+  family = nbinom2)
 
 
 
@@ -533,12 +626,16 @@ mod_fishPred_conn32_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_fishPred_conn32_full
-#source("help_scripts/model_evaluation.R")
+
+# mod = mod_fishPred_conn32_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
+
+
 
 # dredge_fishPred_conn32_full = dredge(mod_fishPred_conn32_full, trace = 2)
 # tab_df(dredge_fishPred_conn32_full,
-#        file="result_tables/dredge_fishPred_conn32_full.doc")
+#        file="suppTables/dredge_fishPred_conn32_full.doc")
 
 
 
@@ -598,12 +695,17 @@ mod_fishPred_net35_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_fishPred_net35_full
-#source("help_scripts/model_evaluation.R")
+
+
+
+# mod = mod_fishPred_net35_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
+
 
 # dredge_fishPred_net35_full = dredge(mod_fishPred_net35_full, trace = 2)
 # tab_df(dredge_fishPred_net35_full,
-#        file="result_tables/dredge_fishPred_net35_full.doc")
+#        file="suppTables/dredge_fishPred_net35_full.doc")
 
 
 mod_fishPred_net35_full_noFish = glmmTMB(
@@ -661,12 +763,13 @@ mod_fishPred_net32_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_fishPred_net32_full
-#source("help_scripts/model_evaluation.R")
+# mod = mod_fishPred_net32_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_fishPred_net32_full = dredge(mod_fishPred_net32_full, trace = 2)
 # tab_df(dredge_fishPred_net32_full,
-#        file="result_tables/dredge_fishPred_net32_full.doc")
+#        file="suppTables/dredge_fishPred_net32_full.doc")
 
 
 
@@ -713,7 +816,13 @@ mod_sel_tab$dAIC = mod_sel_tab$AIC-mod_sel_tab$AIC[1]
 mod_sel_tab = mod_sel_tab[, c(3:4)]
 
 tab_df(mod_sel_tab,
-       file="result_tables/mod_sel_fishPred_local_drivers.doc")
+       file="suppTables/mod_sel_fishPred_local_drivers.doc")
+
+r.squaredGLMM(mod_fishPred_conn35_full)[2,1] # 0.38
+r.squaredGLMM(mod_fishPred_conn35_noConn)[2,1] # 0.34
+r.squaredGLMM(mod_fishPred_conn35_noPred)[2,1] # 0.25
+r.squaredGLMM(mod_fishPred_conn35_noFish)[2,1] # 0.37
+r.squaredGLMM(mod_fishPred_conn35_noTemp)[2,1] # 0.37
 
 
 
@@ -735,7 +844,7 @@ vals = round(tidy(mod_fishPred_net32_full, conf.int = T)[row_order, c(5, 9, 10)]
 coefs_tab$net32 =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
 
 tab_df(coefs_tab,
-       file="result_tables/coefs_fishPred_local_drivers")
+       file="suppTables/coefs_fishPred_local_drivers")
 
 
 
@@ -756,7 +865,6 @@ conn_breaks = conn_breaks/10000
 
 
 pred_conn_2 = visreg(mod_fishPred_conn35_full, xvar = "conn35_sc", by = "pred_sc", 
-                     #breaks = c(min(df_mod$pred_sc), median(df_mod$pred_sc), max(df_mod$pred_sc)),
                      scale = "response", overlay = T, 
                      gg = T, nn = 1000, line.par = list(size = 1, lty = rep(c(1,2,6), each = 1000)), partial = F, rug = 2) +
   
@@ -772,10 +880,19 @@ pred_conn_2 = visreg(mod_fishPred_conn35_full, xvar = "conn35_sc", by = "pred_sc
   
   ylim(0,56.5) +
   
-  theme_bw(base_size = 9)+
+  theme_bw(base_size = 7)+
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.20, 0.20, "cm"))
+
+# save as figure source data
+plot_data = pred_conn_2$data
+plot_data$connectivity = plot_data$x*attributes(df_mod$conn35_sc)$`scaled:scale` + attributes(df_mod$conn35_sc)$`scaled:center` # back to original scale
+plot_data$predation_pressure = as.numeric(plot_data$pred_sc)*attributes(df_mod$pred_sc)$`scaled:scale` + attributes(df_mod$pred_sc)$`scaled:center` # back to original scale
+
+write.csv(plot_data, 
+          "source-data-figures/source_predictions-PredFish_fig2.csv",
+          row.names = FALSE)
 
 
 
@@ -809,10 +926,22 @@ temp_dist_2 = visreg(mod_fishPred_conn35_full,
   
   ylim(0,60) +
   
-  theme_bw(base_size = 9) +
+  theme_bw(base_size = 7) +
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.20, 0.20, "cm"))
+
+# save as figure source data
+plot_data = temp_dist_2$data
+plot_data$DD = plot_data$x*attributes(df_mod$temp_sc)$`scaled:scale` + attributes(df_mod$temp_sc)$`scaled:center` # back to original scale
+plot_data$distance = as.numeric(plot_data$distance_sc)*attributes(df_mod$distance_sc)$`scaled:scale` + attributes(df_mod$distance_sc)$`scaled:center` # back to original scale
+
+write.csv(plot_data, 
+          "source-data-figures/source_predictions-PredFish_fig3.csv",
+          row.names = FALSE)
+
+
+
 
 
 ## fishing vs conn ##
@@ -838,107 +967,5 @@ fish_conn_2 = visreg(mod_fishPred_conn35_full, xvar = "conn35_sc", by = "fishing
   theme_sets +
   theme(
     plot.margin = margin(0.40, 0.20, 0.20, 0.20, "cm"))
-
-
-
-
-
-#### seals vs cormorants ####
-
-mod_pp_conn35_corm = glmmTMB(
-  fishPred ~ 
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    
-    conn35_sc +
-    corm_sc +
-    fishing_sc +
-    conn35_sc*corm_sc +
-    conn35_sc*fishing_sc +
-    
-    temp_sc +
-    temp_sc*distance_sc +
-    
-    
-    (1 | year),
-  
-  
-  na.action = "na.fail",
-  
-  data = df_mod,
-  
-  family = nbinom2)
-
-summary(mod_pp_conn35_corm)
-summary(mod_fishPred_conn35_full)
-AIC(mod_pp_conn35_corm)
-AIC(mod_fishPred_conn35_full)
-r.squaredGLMM(mod_pp_conn35_corm)
-r.squaredGLMM(mod_fishPred_conn35_full)
-
-
-mod_pp_conn35_seal = glmmTMB(
-  fishPred ~ 
-    
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    
-    conn35_sc +
-    seal_sc +
-    fishing_sc +
-    conn35_sc*seal_sc +
-    conn35_sc*fishing_sc +
-    
-    temp_sc +
-    temp_sc*distance_sc +
-    
-    
-    (1 | year),
-  
-  
-  na.action = "na.fail",
-  
-  data = df_mod,
-  
-  family = nbinom2)
-
-summary(mod_pp_conn35_seal)
-summary(mod_fishPred_conn35_full)
-AIC(mod_pp_conn35_seal)
-AIC(mod_fishPred_conn35_full)
-r.squaredGLMM(mod_pp_conn35_seal)
-r.squaredGLMM(mod_fishPred_conn35_full)
-
-
-row_order = c(3,2, 9, 4, 5, 6, 7, 10, 11, 8, 12)
-coefs_tab = data.frame(varab = tidy(mod_pp_conn35_full, conf.int = T)[row_order, 4])
-vals = round(tidy(mod_pp_conn35_full, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$both =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-vals = round(tidy(mod_pp_conn35_corm, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$corm =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-vals = round(tidy(mod_pp_conn35_seal, conf.int = T)[row_order, c(5, 9, 10)], digits = 2)
-coefs_tab$seal =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
-
-coefs_tab = rbind(coefs_tab, c("AIC", 
-                               round(AIC(mod_pp_conn35_full)),
-                               round(AIC(mod_pp_conn35_corm)),
-                               round(AIC(mod_pp_conn35_seal))
-))
-
-coefs_tab = rbind(coefs_tab, c("R2", 
-                               round(r.squaredGLMM(mod_pp_conn35_full)[2,1], digits = 2),
-                               round(r.squaredGLMM(mod_pp_conn35_corm)[2,1], digits = 2),
-                               round(r.squaredGLMM(mod_pp_conn35_seal)[2,1], digits = 2)
-))
-
-
-
-tab_df(coefs_tab,
-       file="result_tables/sealsVScormsPP.doc")
 
 

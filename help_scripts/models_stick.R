@@ -99,9 +99,13 @@ base_model_stick = sdmTMB(
 tidy(base_model_stick, conf.int = T)
 AIC(base_model_stick) # 28169.23
 
+
 # model evaluation
 # mod = base_model_stick
+# observedResp = df_mod$stickleback_int
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
+
 
 # cross-validation
 m_cv = sdmTMB_cv(
@@ -151,6 +155,8 @@ AIC(temp_model_stick) # 27944.79
 
 # model evaluation
 # mod = temp_model_stick
+# observedResp = df_mod$stickleback_int
+# rf = FALSE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
@@ -184,22 +190,22 @@ m2_cv$elpd # -0.5770248
 
 
 # fit (or load) model
-spat_model_stick = sdmTMB(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-
-  family = nbinom2())
-
-save(spat_model_stick , file = "models/spat_model_stick.Rdata")
+# spat_model_stick = sdmTMB(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+#   family = nbinom2())
+# 
+# save(spat_model_stick , file = "models/spat_model_stick.Rdata")
 
 load("models/spat_model_stick.Rdata")
 
@@ -208,38 +214,42 @@ load("models/spat_model_stick.Rdata")
 tidy(spat_model_stick, conf.int = T) 
 AIC(spat_model_stick) # 26809.81
 
+
 # model evaluation
 # mod = spat_model_stick
+# observedResp = df_mod$stickleback_int
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
+
 
 
 # cross-validation
 
-plan(multisession, workers = 5)
-
-m3_cv = sdmTMB_cv(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-  
-  parallel = TRUE,
-
-  mesh = mesh,
-  spatial = "on",
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-plan(sequential)
-
-m3_cv$elpd
+# plan(multisession, workers = 5)
+# 
+# m3_cv = sdmTMB_cv(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+#   
+#   parallel = TRUE,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# plan(sequential)
+# 
+# m3_cv$elpd
 
 
 
@@ -249,25 +259,25 @@ m3_cv$elpd
 
 
 # fit (or load) model
-spat_temp_model_stick_1 = sdmTMB(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    (1 | yearF),
-
-  data = df_mod,
-
-  mesh = mesh,
-  spatial = "on",
-
-
-  family = nbinom2())
-
-
-save(spat_temp_model_stick_1, file = "models/spat_temp_model_stick_3.Rdata")
+# spat_temp_model_stick_1 = sdmTMB(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc +
+#     (1 | yearF),
+# 
+#   data = df_mod,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+# 
+#   family = nbinom2())
+# 
+# 
+# save(spat_temp_model_stick_1, file = "models/spat_temp_model_stick_1.Rdata")
 load("models/spat_temp_model_stick_1.Rdata")
 
 
@@ -278,37 +288,39 @@ AIC(spat_temp_model_stick_1) # 26663.62
 
 # model evaluation
 # mod = spat_temp_model_stick_1
+# observedResp = df_mod$stickleback_int
+# rf = TRUE
 # source("help_scripts/model_evaluation_sdmTMB.R")
 
 
 
 # cross-validation
 
-plan(multisession, workers = 5)
-
-m4_cv = sdmTMB_cv(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc +
-    (1 | yearF),
-
-  data = df_mod,
-  
-  parallel = TRUE,
-
-  mesh = mesh,
-  spatial = "on",
-
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-plan(sequential)
+# plan(multisession, workers = 5)
+# 
+# m4_cv = sdmTMB_cv(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc +
+#     (1 | yearF),
+# 
+#   data = df_mod,
+#   
+#   parallel = TRUE,
+# 
+#   mesh = mesh,
+#   spatial = "on",
+# 
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# plan(sequential)
 
 m4_cv$elpd
 
@@ -319,66 +331,68 @@ m4_cv$elpd
 
 
 # fit (or load) model
-spat_temp_model_stick_2 = sdmTMB(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  time = "year",
-  spatiotemporal = "iid",
-
-  mesh = mesh,
-  spatial = "off",
-
-
-  family = nbinom2())
-
-
-save(spat_temp_model_stick_2 , file = "models/spat_temp_model_stick_2.Rdata")
+# spat_temp_model_stick_2 = sdmTMB(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   time = "year",
+#   spatiotemporal = "iid",
+# 
+#   mesh = mesh,
+#   spatial = "off",
+# 
+# 
+#   family = nbinom2())
+# 
+# 
+# save(spat_temp_model_stick_2 , file = "models/spat_temp_model_stick_2.Rdata")
 
 load("models/spat_temp_model_stick_2.Rdata")
 
 # estimates and AIC
 tidy(spat_temp_model_stick_2, conf.int = T)
-AIC(spat_temp_model_stick_2) 
+AIC(spat_temp_model_stick_2) # 26314.66 
 
 # model evaluation
-# mod = spat_temp_model_stick_2 
-# source("help_scripts/model_stick_evaluation_sdmTMB.R")
+# mod = spat_temp_model_stick_2
+# observedResp = df_mod$stickleback_int
+# rf = TRUE
+# source("help_scripts/model_evaluation_sdmTMB.R")
 
 # cross-validation
 
-plan(multisession, workers = 10)
+#plan(multisession, workers = 10)
 
-m5_cv = sdmTMB_cv(
-  stickleback_int ~
-
-    BIAS_sc +
-    distance_sc +
-    BIAS_sc*distance_sc  +
-    swm_sc,
-
-  data = df_mod,
-
-  time = "year",
-  spatiotemporal = "iid",
-
-  mesh = mesh,
-  spatial = "off",
-
-  fold_ids = clust,
-  k_folds = length(unique(clust)),
-
-  family = nbinom2())
-
-plan(sequential)
-
-m5_cv$elpd
+# m5_cv = sdmTMB_cv(
+#   stickleback_int ~
+# 
+#     BIAS_sc +
+#     distance_sc +
+#     BIAS_sc*distance_sc  +
+#     swm_sc,
+# 
+#   data = df_mod,
+# 
+#   time = "year",
+#   spatiotemporal = "iid",
+# 
+#   mesh = mesh,
+#   spatial = "off",
+# 
+#   fold_ids = clust,
+#   k_folds = length(unique(clust)),
+# 
+#   family = nbinom2())
+# 
+# plan(sequential)
+# 
+# m5_cv$elpd
 
 
 
@@ -386,74 +400,12 @@ m5_cv$elpd
 
 #### saving AICs and elpds ####
 
-stick_spat_temp_model_comp = data.frame(
-  stick_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
-  stick_elpds = c(m_cv$elpd, m2_cv$elpd, m43_cv$elpd, m4_cv$elpd, m5_cv$elpd)
+# stick_spat_temp_model_comp = data.frame(
+#   stick_AIC = c(AIC(base_model) - AIC(base_model, temp_model, spat_model, spat_temp_model_1, spat_temp_model_2)),
+#   stick_elpds = c(m_cv$elpd, m2_cv$elpd, m43_cv$elpd, m4_cv$elpd, m5_cv$elpd)
+# 
+# )
 
-)
-
-
-## extracting data for Serena ##
-
-serena = read.csv("~/analysis/stickleback/data/coastland_predators.txt", encoding="UTF8")
-
-C = SpatialPoints(
-  coords = cbind(serena$longitude, serena$latitude),
-  proj4string = crs(SWM)
-)
-
-serena$SWM = extract(SWM, C)
-
-# create spatial points object of missing values
-C = SpatialPoints(
-  coords = cbind(serena$longitude[is.na(serena$SWM)], serena$latitude[is.na(serena$SWM)]),
-  proj4string = crs(SWM)
-)
-
-# identify nearest points with not-NA values and turn into spatial points object
-C2 = nearestLand(coordinates(C), SWM, 2000)
-C3 = SpatialPoints(coords = C2, proj4string = crs(SWM))
-
-# extract SWM values where missing
-serena$SWM[is.na(serena$SWM)] = extract(SWM, C3)
-
-
-# have added BIAS data
-
-serena$year = serena$YEAR
-
-serena$swm_sc = (log10(serena$SWM)-attributes(df_mod$swm_sc)$`scaled:center`)/attributes(df_mod$swm_sc)$`scaled:scale`
-serena$BIAS_sc = (serena$BIASmean-attributes(df_mod$BIAS_sc)$`scaled:center`)/attributes(df_mod$BIAS_sc)$`scaled:scale`
-serena$distance_sc = (serena$distance-attributes(df_mod$distance_sc)$`scaled:center`)/attributes(df_mod$distance_sc)$`scaled:scale`
-
-
-
-# check if data points are in water
-wat = extract(land25, cbind(serena$longitude, serena$latitude))
-
-needs_fixing = which(!is.na(wat))
-
-# move points on land to closest point in water
-source("help_scripts/nearestLand_NA.R")
-in_water = nearestLand_NA(points = cbind(serena$longitude[needs_fixing], serena$latitude[needs_fixing]), raster = land25, max_distance = 150)
-
-serena$X_new = serena$longitude
-serena$X_new[needs_fixing] = in_water[,1]
-serena$Y_new = serena$latitude
-serena$Y_new[needs_fixing] = in_water[,2]
-
-test = subset(serena, year <= 2020 & !is.na(BIAS_sc) & !is.na(swm_sc) & !is.na(distance_sc) & !is.na(X_new) & !is.na(Y_new))
-
-preds = predict(spat_temp_model_stick_2, newdata = test, type = "response")
-
-preds = preds[, 6:30]
-
-
-
-
- # need to make sure X and Y are in same coordinate system
-
-  
   
 
 #### ADD IN POTENTIAL DRIVERS ####
@@ -472,8 +424,9 @@ mod_ref = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_ref
-#source("help_scripts/model_evaluation.R")
+# mod = mod_ref
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 
 mod_ref2 = glmmTMB(
@@ -494,8 +447,10 @@ mod_ref2 = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_ref2
-#source("help_scripts/model_evaluation.R")
+# mod = mod_ref2
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
+
 
 
 
@@ -528,11 +483,15 @@ mod_stickleback_conn35_full = glmmTMB(
   family = nbinom2)
 
 mod = mod_stickleback_conn35_full
-#source("help_scripts/model_evaluation.R")
+qqmod = FALSE
+resp = "stick"
+source("help_scripts/model_evaluation.R")
+
+
 
 # dredge_stickleback_conn35_full = dredge(mod_stickleback_conn35_full, trace = 2)
 # tab_df(dredge_stickleback_conn35_full,
-#        file="result_tables/dredge_stickleback_conn35_full.doc")
+#        file="suppTables/dredge_stickleback_conn35_full.doc")
 
 mod_stickleback_conn35_full_noFish = glmmTMB(
   stickleback_int ~ 
@@ -589,12 +548,13 @@ mod_stickleback_conn32_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_stickleback_conn32_full
-#source("help_scripts/model_evaluation.R")
+# mod = mod_stickleback_conn32_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_stickleback_conn32_full = dredge(mod_stickleback_conn32_full, trace = 2)
 # tab_df(dredge_stickleback_conn32_full,
-#        file="result_tables/dredge_stickleback_conn32_full.doc")
+#        file="suppTables/dredge_stickleback_conn32_full.doc")
 
 
 mod_stickleback_conn32_full_noFish = glmmTMB(
@@ -652,12 +612,13 @@ mod_stickleback_net35_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_stickleback_net35_full
-#source("help_scripts/model_evaluation.R")
+# mod = mod_stickleback_net35_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_stickleback_net35_full = dredge(mod_stickleback_net35_full, trace = 2)
 # tab_df(dredge_stickleback_net35_full,
-#        file="result_tables/dredge_stickleback_net35_full.doc")
+#        file="suppTables/dredge_stickleback_net35_full.doc")
 
 mod_stickleback_net35_full_noFish = glmmTMB(
   stickleback_int ~ 
@@ -713,12 +674,14 @@ mod_stickleback_net32_full = glmmTMB(
   
   family = nbinom2)
 
-mod = mod_stickleback_net32_full
-#source("help_scripts/model_evaluation.R")
+
+# mod = mod_stickleback_net32_full
+# qqmod = FALSE
+# source("help_scripts/model_evaluation.R")
 
 # dredge_stickleback_net32_full = dredge(mod_stickleback_net32_full, trace = 2)
 # tab_df(dredge_stickleback_net32_full,
-#        file="result_tables/dredge_stickleback_net32_full.doc")
+#        file="suppTables/dredge_stickleback_net32_full.doc")
 
 mod_stickleback_net32_full_noFish = glmmTMB(
   stickleback_int ~ 
@@ -762,7 +725,7 @@ mod_sel_tab$dAIC = mod_sel_tab$AIC-mod_sel_tab$AIC[1]
 mod_sel_tab = mod_sel_tab[, c(3:4)]
 
 tab_df(mod_sel_tab,
-       file="result_tables/mod_sel_stickleback_local_drivers.doc")
+       file="suppTables/mod_sel_stickleback_local_drivers.doc")
 
 
 
@@ -784,7 +747,7 @@ vals = round(tidy(mod_stickleback_net32_full, conf.int = T)[row_order, c(5, 9, 1
 coefs_tab$net32 =  paste0(vals$estimate, " (", vals$conf.low, ";", vals$conf.high,")" )
 
 tab_df(coefs_tab,
-       file="result_tables/coefs_stickleback_local_drivers")
+       file="suppTables/coefs_stickleback_local_drivers")
 
 
 #### visualisation ####

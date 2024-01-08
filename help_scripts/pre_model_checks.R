@@ -1,6 +1,7 @@
 ### check distribution of response variables ###
 
 hist(df_sub$RPD, breaks = seq(0, 1, 0.1))
+ggplot(df_sub, aes(RPD)) + geom_histogram()
 
 hist(df_sub$stickleback_int, seq(floor(min(df_sub$stickleback_int, na.rm = T)), ceiling(max(df_sub$stickleback_int, na.rm = T)), 1))
 hist(df_sub$stickleback_int, seq(floor(min(df_sub$stickleback_int, na.rm = T)), ceiling(max(df_sub$stickleback_int, na.rm = T)), 1), xlim = c(0, 100)) # very many zeroes
@@ -149,7 +150,7 @@ for(y in sort(unique(df_sub$year))){
 # pretty good spread but lack of low-latitude samples in early years
 
 
-par(mfrow = c(8,5))
+par(mfrow = c(1,1))
 
 for(y in sort(unique(df_sub$year))){
   
@@ -260,7 +261,7 @@ pairs(cbind(dist = df_sub$distance,
 
 
 # cor tables # 
-df_cor = cor.var = data.frame(conn35 = df_sub$conn35,
+df_cor = data.frame(conn35 = df_sub$conn35,
                               conn32 = df_sub$conn32,
                               connected_area_net_35 = df_sub$connected_area_net_35,
                               connected_area_net_32 = df_sub$connected_area_net_32,
@@ -293,7 +294,7 @@ rcorr(as.matrix(cor.var),type="pearson")
 
 
 tab_df(cors,show.rownames = TRUE,
-       file="cors_conn35.doc")
+       file="suppTables/cors_conn35.doc")
 
 
 # conn 32
@@ -313,7 +314,7 @@ rcorr(as.matrix(cor.var),type="pearson")
 
 
 tab_df(cors,show.rownames = TRUE,
-       file="cors_conn32.doc")
+       file="suppTables/cors_conn32.doc")
 
 
 
@@ -334,7 +335,7 @@ rcorr(as.matrix(cor.var),type="pearson")
 
 
 tab_df(cors,show.rownames = TRUE,
-       file="cors_net35.doc")
+       file="suppTables/cors_net35.doc")
 
 
 
@@ -357,23 +358,11 @@ rcorr(as.matrix(cor.var),type="pearson")
 
 
 tab_df(cors,show.rownames = TRUE,
-       file="cors_net32.doc")
+       file="suppTables/cors_net32.doc")
 
 
 
 
 
 
-
-
-
-# nothing looking too problematic
-# some associations connectivity/distance (but scattered)
-# also fishing/dist
-# SWM/dist
-# SWM/fishing
-# connectivity /SWM
-# connectivity/fishing
-# fishing/top predator interesting pattern
-# varies a little bit depending on metric
 

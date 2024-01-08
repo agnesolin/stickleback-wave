@@ -61,20 +61,21 @@ testSpatialAutocorrelation(res, groupLocations$X, groupLocations$Y)
 mctest(mod)
 imcdiag(mod, corr = TRUE)
 
-
-#jpeg("suppFigures/qq_RPD.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-jpeg("suppFigures/qq_stick.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-#jpeg("suppFigures/qq_pp.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
-
-plotQQunif(simres, 
-           testUniformity = F, testOutliers = F, testDispersion = F, 
-           main = "QQ-plot base model",
-           cex.axis = 2, cex.lab = 3,  cex.main = 3, 
-           family = "sans")
-
-dev.off()
-
-
+if(qqmod){
+  
+  
+  if(resp == "RPD") jpeg("suppFigures/qq_RPD.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
+  if(resp == "stick") jpeg("suppFigures/qq_stick.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
+  if(resp == "pp")  jpeg("suppFigures/qq_pp.jpg", width = 18.5, height = 18.5, units = "cm", res = 300)
+  
+  plotQQunif(simres, 
+             testUniformity = F, testOutliers = F, testDispersion = F, 
+             main = "QQ-plot base model",
+             family = "sans")
+  
+  dev.off()
+  
+}
 
 
 
