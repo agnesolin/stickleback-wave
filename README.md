@@ -1,6 +1,6 @@
 # Code for "Spatial connectivity increases ecosystem resilience towards an ongoing regime shift"
 
-date: 23-05-09
+date: 24-01-08
 
 author: Agnes Olin
 
