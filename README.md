@@ -1,4 +1,4 @@
-# Code for "Spatial connectivity increases ecosystem resilience towards an ongoing regime shift"
+# Code for "Predation and spatial connectivity interact to shape ecosystem resilience to an ongoing regime shift"
 
 date: 24-01-08
 
