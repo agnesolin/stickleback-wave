@@ -6,7 +6,8 @@ author: Agnes Olin
 
 contact: agnes.olin@slu.se
 
-This repository includes code for the manuscript "Spatial connectivity increases ecosystem resilience towards an ongoing regime shift".
+This repository includes code for the paper "Predation and spatial connectivity interact to shape ecosystem resilience to an ongoing regime shift":
+Olin, A.B., Bergström, U., Bodin, Ö. et al. Predation and spatial connectivity interact to shape ecosystem resilience to an ongoing regime shift. Nat Commun 15, 1304 (2024). https://doi.org/10.1038/s41467-024-45713-1
 
 The main script is called "sticklebackMAIN" and this one calls various help scripts from the folder "help_scripts".
 
